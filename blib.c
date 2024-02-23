@@ -1,7 +1,11 @@
 #include <blib.h>
 
 size_t strlen(const char *s) {
-    panic("please implement");
+    const char *p = s;
+    while (*p != '\0') {
+        p++;
+    }
+    return p - s;
 }
 
 char *strcpy(char *dst, const char *src) {
@@ -43,11 +47,38 @@ int strncmp(const char *s1, const char *s2, size_t n) {
 }
 
 char *strcat(char *dst, const char *src) {
-    panic("please implement");
+    char *p = dst;
+    // 移动到目标字符串的末尾
+    while (*p != '\0') {
+        p++;
+    }
+    // 将源字符串逐个字符追加到目标字符串末尾
+    while (*src != '\0') {
+        *p = *src;
+        p++;
+        src++;
+    }
+    // 添加字符串结束符
+    *p = '\0';
+    return dst;
 }
 
 char *strncat(char *dst, const char *src, size_t n){
-    panic("please implement");
+    char *p = dst;
+    // 移动到目标字符串的末尾
+    while (*p != '\0') {
+        p++;
+    }
+    // 将源字符串的最多 n 个字符逐个追加到目标字符串末尾
+    while (*src != '\0' && n > 0) {
+        *p = *src;
+        p++;
+        src++;
+        n--;
+    }
+    // 添加字符串结束符
+    *p = '\0';
+    return dst;
 }
 
 char *strchr(const char *str, int character){
@@ -62,7 +93,27 @@ char *strchr(const char *str, int character){
 }
 
 char* strsep(char** stringp, const char* delim){
-    panic("please implement");
+    if (*stringp == NULL) {
+        return NULL;  // 如果字符串指针为 NULL，直接返回 NULL
+    }
+
+    char* start = *stringp;
+    char* end = *stringp;
+
+    // 在字符串中查找分隔符的位置
+    while (*end != '\0' && strchr(delim, *end) == NULL) {
+        end++;
+    }
+
+    // 如果找到分隔符，则用 '\0' 替换它，并更新 *stringp 指向下一个位置
+    if (*end != '\0') {
+        *end = '\0';
+        *stringp = end + 1;
+    } else {
+        *stringp = NULL;  // 如果未找到分隔符，将 *stringp 设置为 NULL
+    }
+
+    return start;
 }
 
 
