@@ -8,4 +8,4 @@ targetStr="$2"
 newFile="$3"
 
 # 2. 使用grep查找内容
-grep -n "$targetStr" "$srcFile" > "$newFile"
+grep -n "$targetStr" "$srcFile" | awk -F: '{print $1}'  > "$newFile"
