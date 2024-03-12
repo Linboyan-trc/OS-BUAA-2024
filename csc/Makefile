@@ -1,19 +1,6 @@
-# csc/Makefile
+all:
+	make -C ./code
+	gcc -o fibo ./code/fibo.o ./code/main.o
 
-# Default target
-all: fibo
-
-# Subdirectory
-CODE_DIR = code
-
-# Targets in subdirectory
-SUBTARGETS = $(CODE_DIR)/fibo.o $(CODE_DIR)/main.o
-
-# Build executable
-fibo: $(SUBTARGETS)
-	$(CC) $(CFLAGS) -o $@ $^
-
-# Clean .o files
 clean:
-	$(MAKE) -C $(CODE_DIR) clean
-
+	make clean -C ./code

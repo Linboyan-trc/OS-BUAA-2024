@@ -1,11 +1,6 @@
-out: fibo.o main.o
-    gcc -o $@ $^
-
-fibo.o: code/fibo.c ../include/fibo.h
-    gcc -c -o $@ $< -I../include
-
-main.o: code/main.c
-    gcc -c -o $@ $<
+all:
+	gcc -c fibo.c -I ../include
+	gcc -c main.c -I ../include
 
 clean:
-    rm -f fibo.o main.o out
+	rm *.o
