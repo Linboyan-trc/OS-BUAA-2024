@@ -140,3 +140,29 @@ int main() {
 	3. 撤销
 		u
 
+1. ls
+	-a 全部文件
+	-l 长格式
+
+2. cat
+	cat ori.txt 输出单个文件
+	cat 1.txt 2.txt 两个文件一起输出
+  head
+	head 1.txt -n 1输出前一行
+	head 1.txt -c 1输出前一个字节
+
+3. ps
+	1. PID是process id 进程号
+	  tty是终端标识 终端号
+	2. ps 查看进程
+		得到PID TTY TIME CMD四列
+	  ps -e 所有进程
+	  ps -f 全部信息
+		得到UID PID PPID C STIME TTY TIME CMD
+
+4. grep
+	grep -a "111" ori.txt 不忽略二进制
+  sed
+	sed 's/aa/bb/g' ori.txt 不修改原文本，直接输出修改后的结果
+	sed -n '3p;7p;10p' ori.txt 查看第3,7,10行
+
