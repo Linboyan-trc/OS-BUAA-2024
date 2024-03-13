@@ -34,17 +34,19 @@ fi
 # You can remove ":" after finishing.
 if $SORT; then
     # Your code here. (1/3)
-    sort -k4nr -k2n ps.out
+    sort -k4nr -k2n $FILE
 elif [ ! -z "$CMD" ]; then
     # Your code here. (2/3)
-    grep "$CMD" ps.out
+    #awk '{prini
+    #grep -E "\w+\s+\w+\s+\w+\s+\w+\s+\*$CMD\*" $FILE
+    grep -E "\w+\s+\w+\s+\w+\s+\w+\s+*$CMD*" $FILE 
 elif [ ! -z $PID ]; then
     # Your code here. (3/3)
-    temp=`awk -v input=$PID '$2==input {print}' ps.out | awk '{print $3}'`
+    temp=`awk -v input=$PID '$2==input {print}' $FILE | awk '{print $3}'`
     while (($temp!=0))
     do
 	    echo $temp
-	    temp=`awk -v input=$temp '$2==input {print}' ps.out | awk '{print $3}'`
+	    temp=`awk -v input=$temp '$2==input {print}' $FILE | awk '{print $3}'`
     done
     echo $temp
 else
