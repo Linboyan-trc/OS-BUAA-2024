@@ -39,7 +39,7 @@ elif [ ! -z "$CMD" ]; then
     # Your code here. (2/3)
     #awk '{prini
     #grep -E "\w+\s+\w+\s+\w+\s+\w+\s+\*$CMD\*" $FILE
-    grep -E "\w+\s+\w+\s+\w+\s+\w+\s+*$CMD*" $FILE 
+    awk -v input=$CMD '(index($5,input)!=0)||(index($6,input)!=0)||(index($7,input)!=0)||(index($8,input)!=0)||(index($9,input)!=0)||(index($10,input)!=0)||(index($11,input)!=0) {print}' $FILE
 elif [ ! -z $PID ]; then
     # Your code here. (3/3)
     temp=`awk -v input=$PID '$2==input {print}' $FILE | awk '{print $3}'`
