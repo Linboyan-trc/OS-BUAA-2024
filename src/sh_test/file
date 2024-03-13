@@ -20,3 +20,123 @@ int main() {
 	}
 	return 0;
 }
+
+1. 文本编辑命令
+	1. cat head tail
+		cat ori.txt
+		head ori.txt -n 3
+		tail ori.txt -n 3
+	2. grep sed awk
+		1. 查找行号
+			grep -n "123" ori.txt
+		2. 正则匹配
+			grep -E "aaa|bbb" ori.txt
+		3. 忽略大小写
+			grep -i "AAa" ori.txt
+
+		1. 编辑替换文本
+			sed -i 's/111/222/g' ori.txt
+			在'中'使用参数$1,$2，要带引号'$1', '$2'
+
+1. 输出特定行号
+	awk 'NR==8 || NR==32 {print}' ori.txt
+2. 分割文本
+	输入 | awk -F: '{print $1}'
+	3. echo
+	4. mv和cp
+		1. 移动复制文件
+			mv src/* dst 全部移动到dst
+			cp -r src/* dst 全部复制到dst
+		2. 重命名文件
+			mv 1.txt 2.txt
+	5. find
+		find ./ -name "a.txt" 在当前目录下查找文件
+	6. 重定向
+		1. 错误输出到文件
+			gcc bad.c 2>bug.txt
+		2. 单行多行输入到文件
+			1. 单行 echo "123" > ori.txt
+			2. 多行 cat >ori.txt <<'EOF'
+					...
+					EOF
+	7. 修改权限
+		1. 7是所有权限 6是读写权限 0没有任何权限
+		2. chmod +x modify.sh 添加执行权限
+		3. chmod 777 modify.sh 全部权限
+
+
+
+2. Shell编程
+	1. 开头结尾
+		#!/bin/bash
+		chmod +x shell.sh
+	2. if
+		if 条件
+		then
+		elif
+		then
+		else
+		fi
+	3. while
+		while 条件
+		do
+		done
+	4. case
+		case $1 in
+		"111")
+		;;
+		"222")
+		;;
+		*)
+		;;
+		esac
+	5. 判断语句
+		1. $#参数格式 $*参数字符串 $1,$2,...每个参数
+		  $?上一条指令执行结果
+		2. 判断
+			-le 小于等于
+			-eq 等于
+			-ge 大于等于
+			[ $# -eq 1 ]
+			[ $1 -le 100 ]
+			[ $? -eq 0 ]
+	6. 指令执行
+		result=`diff $1 $3 -q`
+		执行了指令diff，-q安静模式，只返回结果
+		0表示没有找到不同，1表示成功找到不同
+	7. 整数
+		1. (( $1 > $2 )), (( $1 <= $2 )),... 比较大小
+		2. a=$((a+1)) 自增运算
+
+
+
+
+3. Makefile
+	1. gcc编译
+		1. 编译
+			gcc -o main main.c 可执行文件
+			gcc -o fibo.o fibo.c .o文件
+		2. 链接编译
+			gcc -o fibo.o fibo.c -I ../include
+	2. 子目录操作
+		make -C ./code
+		make clean -C ./code
+	3. 执行可执行文件
+		echo "5" | ./fibo
+
+
+
+4. Vim操作
+	1. 复制粘贴
+		hjkl移动
+		Y复制行
+		p再光标行之后 + 粘贴行
+	2. 全部选中
+		gg第一行
+		V可视化
+		G最后一行
+		+ Y 复制
+		+ d 删除
+	3. 撤销
+		u
+
