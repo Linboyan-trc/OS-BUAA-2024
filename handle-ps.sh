@@ -40,12 +40,13 @@ elif [ ! -z "$CMD" ]; then
     grep "$CMD" ps.out
 elif [ ! -z $PID ]; then
     # Your code here. (3/3)
-    temp=awk -v input=$PID '$2==PID {print}' ps.out | awk '{print $3}'
-    while [ #? -eq 0 ]
+    temp=`awk -v input=$PID '$2==input {print}' ps.out | awk '{print $3}'`
+    while (($temp!=0))
     do
 	    echo $temp
-	    awk -v input=$temp '$2==PID {print}' ps.out | awk '{print $3}'
+	    temp=`awk -v input=$temp '$2==input {print}' ps.out | awk '{print $3}'`
     done
+    echo $temp
 else
     usage
     exit 1
