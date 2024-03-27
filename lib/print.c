@@ -9,6 +9,9 @@ void vprintfmt(fmt_callback_t out, void *data, const char *fmt, va_list ap) {
 	char c;
 	const char *s;
 	long num;
+	long x1;
+	long x2;
+	long x3;
 
 	int width;
 	int long_flag; // output is long (rather than int)
@@ -92,7 +95,50 @@ void vprintfmt(fmt_callback_t out, void *data, const char *fmt, va_list ap) {
 			}
 			print_num(out, data, num, 2, 0, width, ladjust, padc, 0);
 			break;
-
+		case 'P':
+			// 2.1 type
+			if (long_flag) {
+				x1 = va_arg(ap, long int);
+				x2 = va_arg(ap, long int);
+				x3 = (x1 + x2) * (x1 -x2);
+				x3 = x3 < 0? -x3 : x3;
+			} else {
+				x1 = va_arg(ap, int);
+				x2 = va_arg(ap, int);
+				x3 = (int)(x1 + x2) * (x1 -x2);
+				x3 = x3 < 0? -x3 : x3;
+			}
+			// 2.2 (
+			out(data, "(", 1);
+			
+			// 2.3 x1
+			if (x1<0) {
+				neg_flag = 1;
+				x1 = -x1;
+			}
+			print_num(out, data, x1, 10, neg_flag, width, ladjust, padc, 0);
+			
+			// 2.4 ,
+			out(data, ",", 1);
+			
+			// 2.5 x2
+			neg_flag = 0;
+			if (x2<0) {
+				neg_flag = 1;
+				x2 = -x2;
+			}
+			print_num(out, data, x2, 10, neg_flag, width, ladjust, padc, 0);
+			
+			// 2.6 ,
+			out(data, ",", 1);
+			
+			// 2.7 x3
+			print_num(out, data, x3, 10, 0, width, ladjust, padc, 0);
+			
+			// 2.8 )
+			out(data, ")", 1);
+			
+			break;
 		case 'd':
 		case 'D':
 			if (long_flag) {
