@@ -249,7 +249,7 @@ int vscanfmt(scan_callback_t in, void *data, const char *fmt, va_list ap) {
 				// 4. base
 				base = 0;
 				while ((('0' <= ch && ch <= '9') || ('a' <= ch && ch <= 'f') )&& ch != '\0') {
-					base *= 10;
+					base *= 16;
 					if ('0' <= ch && ch <= '9') {
 						base += ch - '0';
 					} else {
