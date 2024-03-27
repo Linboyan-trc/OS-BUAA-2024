@@ -269,7 +269,8 @@ int vscanfmt(scan_callback_t in, void *data, const char *fmt, va_list ap) {
 				// 1. get place
 				cp = va_arg(ap, char *);
 				// 2. store
-				in(data,cp,1);
+				//in(data,cp,1);
+				*cp = ch;
 				break;
 			case 's':
 				// Lab 1-Extra: Your code here. (5/5)
@@ -277,7 +278,7 @@ int vscanfmt(scan_callback_t in, void *data, const char *fmt, va_list ap) {
 				num = 0;
 				cp = va_arg(ap, char *);
 				// 2. get char not \t \n ' ' add to cp
-				in(data,&ch,1);
+				//in(data,&ch,1);
 				while(ch != '\t' && ch != '\n' && ch != ' '){
 					cp[num] = ch;
 					num++;
