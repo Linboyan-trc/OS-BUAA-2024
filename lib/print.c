@@ -270,6 +270,9 @@ int vscanfmt(scan_callback_t in, void *data, const char *fmt, va_list ap) {
 				cp = va_arg(ap, char *);
 				// 2. store
 				//in(data,cp,1);
+				while(ch == '\t' || ch == '\n' || ch == ' '){
+					in(data,&ch,1);
+				}
 				*cp = ch;
 				break;
 			case 's':
