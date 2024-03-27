@@ -205,9 +205,10 @@ int vscanfmt(scan_callback_t in, void *data, const char *fmt, va_list ap) {
 				// 1. get place
 				ip = va_arg(ap, int *);
 				// 2. neg
-				in(data,&ch,1);
+				//in(data,&ch,1);
 				if (ch == '-') {
 					neg = 1;
+					in(data,&ch,1);
 				}
 				// 3. pre zero
 				if (ch == '0') {
@@ -224,9 +225,9 @@ int vscanfmt(scan_callback_t in, void *data, const char *fmt, va_list ap) {
 				}
 				// 5. store in ip
 				if (neg){
-					ip[0] = -base;
+					*ip = -base;
 				} else {
-					ip[0] = base;
+					*ip = base;
 				}
 				break;
 			case 'x': // ????
@@ -234,9 +235,10 @@ int vscanfmt(scan_callback_t in, void *data, const char *fmt, va_list ap) {
 				// 1. get place
 				ip = va_arg(ap, int *);
 				// 2. neg
-				in(data,&ch,1);
+				//in(data,&ch,1);
 				if (ch == '-') {
 					neg = 1;
+					in(data,&ch,1);
 				}
 				// 3. pre zero
 				if (ch == '0') {
