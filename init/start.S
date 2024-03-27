@@ -23,10 +23,7 @@ clear_bss_done:
 	/* hint: you can refer to the memory layout in include/mmu.h */
 	/* set up the kernel stack */
 	/* Exercise 1.3: Your code here. (1/2) */
-	/* 1. 设置栈顶位置，由mmu.h中可以看出栈顶在8040_0000, 也可以用宏KSTACKTOP */
 	la sp, 0x80400000
-
 	/* jump to mips_init */
 	/* Exercise 1.3: Your code here. (2/2) */
-	/* 2. 跳到初始化函数，本实验给定初始化函数为mips_init */
 	j mips_init

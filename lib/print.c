@@ -17,69 +17,50 @@ void vprintfmt(fmt_callback_t out, void *data, const char *fmt, va_list ap) {
 	char padc;     // padding char
 
 	for (;;) {
+		width = 0;
+		long_flag = 0;
+		neg_flag = 0;
+		ladjust = 0;
+		padc = ' ';
 		/* scan for the next '%' */
 		/* Exercise 1.4: Your code here. (1/8) */
-		// 1. 找到fmt所指字符串中的第一个%符号，并且字符串不能结束
-		const char *p = fmt;
-		while (*p != '%' && *p != '\0') {
-			p++;
+		char * tmp = fmt;
+		while (*tmp != '%' && *tmp != '\0') {
+			++tmp;
 		}
-
 		/* flush the string found so far */
 		/* Exercise 1.4: Your code here. (2/8) */
-		// 2. 对于非%部分的字符串，原样打印输出
-		// 2. out的提供的回调函数，用于原样输出，需要传入环境值data，字符串起始位置fmt，字符串长度p-fmt
-		// 2. 打印完毕后，fmt退栈，移到当前p位置，作为新的栈顶
-		out(data, fmt, p - fmt);
-		fmt = p;
-
+		out(data, fmt, tmp - fmt);
+		fmt = tmp;
 		/* check "are we hitting the end?" */
 		/* Exercise 1.4: Your code here. (3/8) */
-		// 3. 查看字符串是否结束
-		// 3. 如果结束，就break跳出for(;;)的恒循环
 		if (*fmt == '\0') {
 			break;
 		}
-
 		/* we found a '%' */
 		/* Exercise 1.4: Your code here. (4/8) */
-		// 4. 进行到这一步，说明当前fmt所指字符为%
-		// 4. 移动fmt往前一步
-		fmt++;
-
+		++fmt;
 		/* check format flag */
 		/* Exercise 1.4: Your code here. (5/8) */
-		// 5.1 判断%[-0]后是否为-，如果为-就要左对齐，设置ladjust为1
-		// 5.1 否则就是右对齐，保持ladjust=0
-		// 5.2 判断%[-0]后是否为0，如果有的话，右对齐要用'0'，不然就用' '作为右对齐填充
-		// 5.2 设置填充字符用' '还是'0'用变量padc记录
-		ladjust = 0;
-		padc = ' ';
 		if (*fmt == '-') {
 			ladjust = 1;
-			fmt++;
-		} else if (*fmt == '0') {
-			padc = '0';
-			fmt++;
+			++fmt;
 		}
-
+		if (*fmt == '0') {
+			padc = '0';
+			++fmt;
+		}
 		/* get width */
 		/* Exercise 1.4: Your code here. (6/8) */
-		// 6. 读取是否指定了宽度
-		width = 0;
-		while ('0' <= *fmt && *fmt<= '9' && *fmt != '\0') {
-			width *= 10; 			// 1. 进位，自己自乘10
-			width += *fmt - '0';  	// 2. 加上新的个位
-			fmt++;
+		while (*fmt >= '0' && *fmt <= '9') {
+			width = width * 10 + *fmt - '0';
+			++fmt; 
 		}
-
 		/* check for long */
 		/* Exercise 1.4: Your code here. (7/8) */
-		// 7. 检查是否是输出long，如果是那么long_flag置1
-		long_flag = 0;
 		if (*fmt == 'l') {
 			long_flag = 1;
-			fmt++;
+			++fmt;
 		}
 
 		neg_flag = 0;
@@ -107,21 +88,12 @@ void vprintfmt(fmt_callback_t out, void *data, const char *fmt, va_list ap) {
 			 * others. (hint: 'neg_flag').
 			 */
 			/* Exercise 1.4: Your code here. (8/8) */
-			// 8. case到这个情况就是要以%d的格式输出一个整数
-			// 8. 栈中存了printk("%d%c%ld,a,b,c)
-			// 8. num是在栈中取到的参数，可能是a，b或c；这里匹配到了%d，所以此时num就是a
-			// 8. 对于一个整数，首先要判断正负
-			// 8. print_num函数只能接受非负数，所以如果num是负数，还要取反一下
-			// 8. print_num需要的参数: out函数, data环境, 要打印的num
-			// 8. print_num需要的参数: 10进制, 是否为负数neg_flag
-			// 8. print_num需要的参数: 宽度width, 是否左对齐ladjust, 占位字符padc, 是否要转大写这里都是数字不涉及转大写的问题所以直接给0
 			if (num < 0) {
-				neg_flag = 1;
 				num = -num;
+				neg_flag = 1; 
 			}
-
-			print_num(out,data,num,10,neg_flag,width,ladjust,padc,0);
-
+			print_num(out, data, num, 10, neg_flag, width, ladjust, padc, 0);
+			
 			break;
 
 		case 'o':
