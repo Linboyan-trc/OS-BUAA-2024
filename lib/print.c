@@ -259,9 +259,9 @@ int vscanfmt(scan_callback_t in, void *data, const char *fmt, va_list ap) {
 				}
 				// 5. store in ip
 				if (neg){
-					ip[0] = -base;
+					*ip = -base;
 				} else {
-					ip[0] = base;
+					*ip = base;
 				}
 				break;
 			case 'c':
