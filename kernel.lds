@@ -18,17 +18,25 @@ SECTIONS {
 	 */
 	/* Step 1: Set the loading address of the text section to the location counter ".". */
 	/* Exercise 1.2: Your code here. (1/4) */
+	/* 根据内存布局，找到Kernel Text起始于8002_0000 */
 	. = 0x80020000;
+
 	/* Step 2: Define the text section. */
 	/* Exercise 1.2: Your code here. (2/4) */
-	text : { *(.text) }
+	/* 放入.text节 */
+	.text : { *(.text) }
+
 	/* Step 3: Define the data section. */
 	/* Exercise 1.2: Your code here. (3/4) */
-	data : { *(.data) } 
+	/* 放入.data节 */
+	.data : { *(.data) }
+
 	bss_start = .;
 	/* Step 4: Define the bss section. */
 	/* Exercise 1.2: Your code here. (4/4) */
-	bss : { *(.bss) }
+	/* 放入.bss节 */
+	.bss : { *(.bss) }
+
 	bss_end = .;
 	. = 0x80400000;
 	end = . ;

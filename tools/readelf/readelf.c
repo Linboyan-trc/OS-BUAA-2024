@@ -43,17 +43,25 @@ int readelf(const void *binary, size_t size) {
 	Elf32_Half sh_entry_count;
 	Elf32_Half sh_entry_size;
 	/* Exercise 1.1: Your code here. (1/2) */
-	sh_table = binary + ehdr->e_shoff;
-	sh_entry_count = ehdr->e_shnum;
-	sh_entry_size = ehdr->e_shentsize;
+    // 1. binary是字节指针 + ehdr->e_shoff偏移量 得到 sh_table节头表指针
+    // 2. 节头表条目数在ehdr->e_shnum中有
+    // 3. 节头表每个条目的大小在ehdr->shentsize中有
+    sh_table = binary + ehdr->e_shoff;
+    sh_entry_count = ehdr->e_shnum;
+    sh_entry_size = ehdr->e_shentsize;
+
 	// For each section header, output its index and the section address.
 	// The index should start from 0.
 	for (int i = 0; i < sh_entry_count; i++) {
 		const Elf32_Shdr *shdr;
 		unsigned int addr;
 		/* Exercise 1.1: Your code here. (2/2) */
-		shdr = sh_table + sh_entry_size * i;
+		// 1. 每个条目用结构体Elf32_Shdr表示, 在每次遍历中都重新声明了一个Elf32_Shdr结构体指针
+		// 2. sh_table是字节指针, 所以每个条目的结构体指针指向 = sh_table + i * 每个条目的大小
+		// 3. 每个条目的地址存储在了Elf32_Shdr结构体中的sh_addr中
+		shdr = sh_table + i * sh_entry_size;
 		addr = shdr->sh_addr;
+
 		printf("%d:0x%x\n", i, addr);
 	}
 

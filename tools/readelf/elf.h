@@ -59,33 +59,19 @@ typedef uint32_t Elf32_Symndx;
 
 typedef struct {
 	unsigned char e_ident[EI_NIDENT]; /* Magic number and other info */
-	// 存放魔数以及其他信息
 	Elf32_Half e_type;		  /* Object file type */
-	// 文件类型
 	Elf32_Half e_machine;		  /* Architecture */
-	// 机器架构
 	Elf32_Word e_version;		  /* Object file version */
-	// 文件版本
 	Elf32_Addr e_entry;		  /* Entry point virtual address */
-	// 入口点的虚拟地址
 	Elf32_Off e_phoff;		  /* Program header table file offset */
-	// 程序头表所在处与此文件头的偏移
 	Elf32_Off e_shoff;		  /* Section header table file offset */
-	// 节头表所在处与此文件头的偏移
 	Elf32_Word e_flags;		  /* Processor-specific flags */
-	// 针对处理器的标记
 	Elf32_Half e_ehsize;		  /* ELF header size in bytes */
-	// ELF文件头的大小(单位为字节)
 	Elf32_Half e_phentsize;		  /* Program header table entry size */
-	// 程序头表项大小
 	Elf32_Half e_phnum;		  /* Program header table entry count */
-	// 程序头表项数
 	Elf32_Half e_shentsize;		  /* Section header table entry size */
-	// 页头表表项大小
 	Elf32_Half e_shnum;		  /* Section header table entry count */
-	// 页头表表项数
 	Elf32_Half e_shstrndx;		  /* Section header string table index */
-	// 节头字符串编号
 } Elf32_Ehdr;
 
 /* Fields in the e_ident array.  The EI_* macros are indices into the
