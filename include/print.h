@@ -28,6 +28,9 @@ typedef void (*fmt_callback_t)(void *data, const char *buf, size_t len);
  * so the output sink should treat 'len' as the actual length of the buffer to print.
  */
 void vprintfmt(fmt_callback_t out, void *data, const char *fmt, va_list ap);
+typedef void (*scan_callback_t)(void *data, char *buf, size_t len);
+int vscanfmt(scan_callback_t in, void *data, const char *fmt, va_list ap);
+
 /* End of Key Code "vprintfmt-overview" */
 
 #endif
