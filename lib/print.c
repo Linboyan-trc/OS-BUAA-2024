@@ -185,6 +185,112 @@ void vprintfmt(fmt_callback_t out, void *data, const char *fmt, va_list ap) {
 }
 
 
+int vscanfmt(scan_callback_t in, void *data, const char *fmt, va_list ap) {
+	int *ip;
+	char *cp;
+	char ch;
+	int base, num, neg, ret = 0;
+
+	while (*fmt) {
+		if (*fmt == '%') {
+			ret++;
+			fmt++; // ?? '%'
+			do {
+				in(data, &ch, 1);
+			} while (ch == ' ' || ch == '\t' || ch == '\n'); // ?????
+			// ??,?? ch ??????????
+			switch (*fmt) {
+			case 'd': // ???
+				// Lab 1-Extra: Your code here. (2/5)
+				// 1. get place
+				ip = va_arg(ap, int *);
+				// 2. neg
+				in(data,&ch,1);
+				if (ch == '-') {
+					neg = 1;
+				}
+				// 3. pre zero
+				if (ch == '0') {
+					while (ch=='0') {
+						in(data,&ch,1);
+					}
+				}
+				// 4. base
+				base = 0;
+				while ('0' <= ch && ch <= '9' && ch != '\0') {
+					base *= 10;
+					base += ch - '0';
+					in(data,&ch,1);
+				}
+				// 5. store in ip
+				if (neg){
+					ip[0] = -base;
+				} else {
+					ip[0] = base;
+				}
+				break;
+			case 'x': // ????
+				// Lab 1-Extra: Your code here. (3/5)
+				// 1. get place
+				ip = va_arg(ap, int *);
+				// 2. neg
+				in(data,&ch,1);
+				if (ch == '-') {
+					neg = 1;
+				}
+				// 3. pre zero
+				if (ch == '0') {
+					while (ch=='0') {
+						in(data,&ch,1);
+					}
+				}
+				// 4. base
+				base = 0;
+				while ((('0' <= ch && ch <= '9') || ('a' <= ch && ch <= 'f') )&& ch != '\0') {
+					base *= 10;
+					if ('0' <= ch && ch <= '9') {
+						base += ch - '0';
+					} else {
+						base += ch - 'a' + 10;
+					}
+					in(data,&ch,1);
+				}
+				// 5. store in ip
+				if (neg){
+					ip[0] = -base;
+				} else {
+					ip[0] = base;
+				}
+				break;
+			case 'c':
+				// Lab 1-Extra: Your code here. (4/5)
+				// 1. get place
+				cp = va_arg(ap, char *);
+				// 2. store
+				in(data,cp,1);
+				break;
+			case 's':
+				// Lab 1-Extra: Your code here. (5/5)
+				// 1. get argument to store
+				num = 0;
+				cp = va_arg(ap, char *);
+				// 2. get char not \t \n ' ' add to cp
+				in(data,&ch,1);
+				while(ch != '\t' && ch != '\n' && ch != ' '){
+					cp[num] = ch;
+					num++;
+					in(data,&ch,1);
+				}
+				// 3. \0
+				cp[num] = '\0';
+				break;
+			}
+			fmt++;
+		}
+	}
+	return ret;
+}
+
 /* --------------- local help functions --------------------- */
 void print_char(fmt_callback_t out, void *data, char c, int length, int ladjust) {
 	int i;
