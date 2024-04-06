@@ -220,7 +220,10 @@ static int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte) {
 				return -E_NO_MEM;
 			}
 			pp->pp_ref++;
-			*pgdir_entryp = page2pa(pp) | PTE_D | PTE_V;
+			*pgdir_entryp = page2pa(pp) | PTE_C_CACHEABLE | PTE_V;
+		} else {
+			*ppte = NULL;
+			return 0;
 		}
 	}
 
@@ -279,7 +282,7 @@ int page_insert(Pde *pgdir, u_int asid, struct Page *pp, u_long va, u_int perm) 
 	 * and increase its 'pp_ref'. */
 	/* Exercise 2.7: Your code here. (3/3) */
 	// 7.3 不知道在干什么
-	*pte = page2pa(pp) | perm | PTE_V;
+	*pte = page2pa(pp) | perm | PTE_C_CACHEABLE | PTE_V;
 	pp->pp_ref++;
 
 	return 0;
