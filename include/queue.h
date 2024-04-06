@@ -114,6 +114,18 @@
  */
 #define LIST_INSERT_AFTER(listelm, elm, field)                                                     \
 	/* Exercise 2.2: Your code here. */  \
+	/* 2.1 这里定义双向链表中，插入操作的宏 */ \
+	/* 2.2 在双向链表的定义中，为了节省空间；指向下一个元素的指针le_next = *type */ \
+	/* 2.2 指向上一个元素的指针没有给出，因为一般不对上一个元素操作，但是会对上一个元素的le_next做操作，因为当自己被删除的时候常常要修改上一个元素的下一个子节点*/ \
+	/* 2.2 因此这里直接把le_prev定义为**type，直接获取/修改上一个元素要指向哪个新的元素；不用通过上一个'元素->le_next'来操作，节省了一个指针大小的空间*/ \
+	/* 2.3 让elm的下一个元素 = listelm的下一个元素；并且如果不为空，要让listelm的下一个元素的le_prev改成指向elm field域的指针，field域存放了le_prev和le_next*/ \
+	/* 2.4 然后把listelm的下一个元素改成elm；elm的field.le_prev改成listelm的field*/ \
+	do { \
+		if ((LIST_NEXT((elm), field) = LIST_NEXT((listelm), field)) != NULL) \
+			LIST_NEXT((listelm), field)->field.le_prev = &LIST_NEXT((elm), field); \
+		LIST_NEXT((listelm), field) = (elm); \
+		(elm)->field.le_prev = &LIST_NEXT((listelm), field); \
+	} while (0)
 
 /*
  * Insert the element "elm" *before* the element "listelm" which is
