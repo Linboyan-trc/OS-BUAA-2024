@@ -259,6 +259,7 @@ int page_insert(Pde *pgdir, u_int asid, struct Page *pp, u_long va, u_int perm) 
 		if (pa2page(*pte) != pp) {
 			page_remove(pgdir, asid, va);
 		} else {
+			// 7.1 因为已经对pte权限位进行了更新，所以这个va和asid对应的TLB中的表项要清楚
 			tlb_invalidate(asid, va);
 			*pte = page2pa(pp) | perm | PTE_C_CACHEABLE | PTE_V;
 			return 0;
@@ -267,13 +268,13 @@ int page_insert(Pde *pgdir, u_int asid, struct Page *pp, u_long va, u_int perm) 
 
 	/* Step 2: Flush TLB with 'tlb_invalidate'. */
 	/* Exercise 2.7: Your code here. (1/3) */
-	// 7.1 不知道在干什么
+	// 7.1 清除va在TLB中的缓存
 	tlb_invalidate(asid, va);
 
 	/* Step 3: Re-get or create the page table entry. */
 	/* If failed to create, return the error. */
 	/* Exercise 2.7: Your code here. (2/3) */
-	// 7.2 不知道在干什么
+	// 7.2 重新找或者创建va对应的pte
 	if (pgdir_walk(pgdir, va, 1, &pte) != 0) {
 		return -E_NO_MEM;
 	}
