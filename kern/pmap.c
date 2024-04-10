@@ -584,12 +584,15 @@ int buddy_alloc(u_int size, struct Page **new) {
 	if (size3 != size) {
 		size3 = size3 << 1;
 	}
+	if (size3 < 4096){
+		size3 = 4096;
+	}
 	//printk("size is %u, size3 is %u\n", size, size3);
 	// 2. judge
 	if (size3 == (1<<12) ) {
 		// 2.1 if 0 has el or not
 		if (!LIST_EMPTY(&buddy_free_list[0])){
-			//printk("size3 is 4096, and get from buddy_free_list[0]");
+			//printk("size3 is 4096, and get from buddy_free_list[0]\n");
 			struct Page *pp;
 			pp = LIST_FIRST(&buddy_free_list[0]);
 			LIST_REMOVE(pp, pp_link);
@@ -597,7 +600,7 @@ int buddy_alloc(u_int size, struct Page **new) {
 			*new = pp;
 			return 1;
 		} else if (!LIST_EMPTY(&buddy_free_list[1])) {
-			//printk("size3 is 4096, and get from buddy_free_list[1]");
+			//printk("size3 is 4096, and get from buddy_free_list[1]\n");
 			// 1. get 8KB and remove from [1]
 			struct Page *pp;
 			pp = LIST_FIRST(&buddy_free_list[1]);
@@ -613,23 +616,23 @@ int buddy_alloc(u_int size, struct Page **new) {
 			*new = pp;
 			return 1;
 		} else{
-			//printk("size3 is 4096, and both lists are empty");
+			//printk("size3 is 4096, and both lists are empty\n");
 			return -E_NO_MEM;
 		}
 	} else if (size3 == (1<<13)){
 		struct Page *pp;
 		if (LIST_EMPTY(&buddy_free_list[1])) {
-			//printk("size3 is 8192, buddy_free_list[1] is empty");
+			//printk("size3 is 8192, buddy_free_list[1] is empty\n");
 			return -E_NO_MEM;
 		}
-		//printk("size3 is 8192, and get from buddy_free_list[1]");
+		//printk("size3 is 8192, and get from buddy_free_list[1]\n");
 		pp = LIST_FIRST(&buddy_free_list[1]);
 		LIST_REMOVE(pp, pp_link);
 		memset((void *)page2kva(pp), 0, size3);
 		*new = pp;
 		return 2;
 	} else {
-		printk("size3 is not 4KB and 8KB\n");
+		//printk("size3 is not 4KB and 8KB\n");
 		return 0;
 	}
 }
