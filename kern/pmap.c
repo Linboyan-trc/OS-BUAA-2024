@@ -639,4 +639,49 @@ int buddy_alloc(u_int size, struct Page **new) {
 
 void buddy_free(struct Page *pp, int npp) {
 	/* Your Code Here (2/2) */
+	// 1. pa1 and pa2 ; pp and pp2
+	u_long pa1 = page2pa(pp);
+	u_long pa2;
+	if (pa1 % 8192 == 0) {
+		pa2 = pa1 + 4096;
+	} else {
+		pa2 = pa1 - 4096;
+	}
+	struct Page *pp2 = pa2page(pa2);
+
+	// 2. is pp2 in free_list[0]
+	bool inZero = false;
+	struct Page *i;
+	LIST_FOREACH(i, &buddy_free_list[0], pp_link){
+		if(i==pp2){
+			inZero = true;
+		}
+	}
+
+	if ((npp==1) && (inZero == true)){
+		// 1. remove pp2
+		LIST_REMOVE(pp2, pp_link);
+		memset((void *)page2kva(pp2), 0, 4096);
+		memset((void *)page2kva(pp), 0, 4096);
+		// 2. merge
+		if (pa1 % 8192 == 0) {
+			pp->pp_ref = 0;
+			LIST_INSERT_HEAD(&buddy_free_list[1], pp, pp_link);
+			return;
+		} else {
+			pp2->pp_ref = 0;
+			LIST_INSERT_HEAD(&buddy_free_list[1], pp2, pp_link);
+			return;
+		}
+	} else if (npp==1){
+		pp->pp_ref = 0;
+		memset((void *)page2kva(pp), 0, 4096);
+		LIST_INSERT_HEAD(&buddy_free_list[0], pp, pp_link);
+		return;
+	} else {
+		pp->pp_ref = 0;
+		memset((void *)page2kva(pp), 0, 8192);
+		LIST_INSERT_HEAD(&buddy_free_list[1], pp, pp_link);
+		return;
+	}
 }
