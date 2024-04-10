@@ -650,15 +650,15 @@ void buddy_free(struct Page *pp, int npp) {
 	struct Page *pp2 = pa2page(pa2);
 
 	// 2. is pp2 in free_list[0]
-	bool inZero = false;
+	int inZero = 0;
 	struct Page *i;
 	LIST_FOREACH(i, &buddy_free_list[0], pp_link){
 		if(i==pp2){
-			inZero = true;
+			inZero = 1;
 		}
 	}
 
-	if ((npp==1) && (inZero == true)){
+	if ((npp==1) && (inZero == 1)){
 		// 1. remove pp2
 		LIST_REMOVE(pp2, pp_link);
 		memset((void *)page2kva(pp2), 0, 4096);
