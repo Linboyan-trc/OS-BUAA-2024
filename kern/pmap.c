@@ -553,3 +553,80 @@ void page_check(void) {
 
 	printk("page_check() succeeded!\n");
 }
+
+#include <buddy.h>
+
+struct Page_list buddy_free_list[2];
+
+void buddy_init() {
+	LIST_INIT(&buddy_free_list[0]);
+	LIST_INIT(&buddy_free_list[1]);
+	for (int i = BUDDY_PAGE_BASE; i < BUDDY_PAGE_END; i += PAGE_SIZE) {
+		struct Page *pp = pa2page(i);
+		LIST_REMOVE(pp, pp_link);
+	}
+	for (int i = BUDDY_PAGE_BASE; i < BUDDY_PAGE_END; i += 2 * PAGE_SIZE) {
+		struct Page *pp = pa2page(i);
+		LIST_INSERT_HEAD(&buddy_free_list[1], pp, pp_link);
+	}
+}
+
+int buddy_alloc(u_int size, struct Page **new) {
+	/* Your Code Here (1/2) */
+	// 1. byte, size3 is final size
+	u_int cnt = 0;
+	u_int size2 = size;
+	while (size2 >> 1) {
+		size2 = size2 >> 1;
+		cnt++;
+	}
+	u_int size3 = 1 << cnt;
+	if (size3 != size) {
+		size3 == size3 << 1;
+	}
+	// 2. judge
+	if (size3 == (1<<12) ) {
+		// 2.1 if 0 has el or not
+		if (!LIST_EMPTY(&buddy_free_list[0])){
+			struct Page *pp;
+			pp = LIST_FIRST(&buddy_free_list[0]);
+			LIST_REMOVE(pp, pp_link);
+			memset((void *)page2kva(pp), 0, size3);
+			*new = pp;
+			return 0;
+		} else if (!LIST_EMPTY(&buddy_free_list[1])) {
+			// 1. get 8KB and remove from [1]
+			struct Page *pp;
+			pp = LIST_FIRST(&buddy_free_list[1]);
+			LIST_REMOVE(pp, pp_link);
+			memset((void *)page2kva(pp), 0, 8192));
+			// 2. 1 to 2
+			struct Page *pp2;
+			pp2 = pp + 12;
+			// 3. pp2 join [0]
+			LIST_INSERT_HEAD(&buddy_free_list[0], pp2, pp_link);
+			// 4. return pp
+			*new = pp;
+			return 0;
+		} else{
+			return -E_NO_MEM;
+		}
+	} else if (size3 == (1<<13)){
+		struct Page *pp;
+		if (LIST_EMPTY(&buddy_free_list[1])) {
+			return -E_NO_MEM;
+		}
+		pp = LIST_FIRST(&&buddy_free_list[1]);
+		LIST_REMOVE(pp, pp_link);
+		memset((void *)page2kva(pp), 0, size3);
+		*new = pp;
+		return 0;
+	} else {
+		printk("size3 is not 4KB and 8KB\n");
+		return 0;
+	}
+}
+
+void buddy_free(struct Page *pp, int npp) {
+	/* Your Code Here (2/2) */
+}
