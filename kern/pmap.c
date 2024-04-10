@@ -553,3 +553,23 @@ void page_check(void) {
 
 	printk("page_check() succeeded!\n");
 }
+
+u_int page_filter(Pde *pgdir, u_int va_lower_limit, u_int va_upper_limit, u_int num) {
+	u_int cnt = 0;
+	for (u_int va = va_lower_limit; va < va_upper_limit; va += 4096) {
+		// 1. find pgdir
+		Pde *pgdir_entry = pgdir + PDX(va);
+		// 2. get pgtable
+		Pte *pgtable = (Pte *)KADDR(PTE_ADDR(*pgdir_entry));
+		// 3. find entry
+		Pte *pte = pgtable + PTX(va);
+		// 4. judge
+		if (*pte & PTE_V) {
+			u_long pa = PTE_ADDR(*pte);
+			if (pa2page(pa)->pp_ref >= num) {
+				cnt++;
+			}
+		}
+	}
+	return cnt;
+}
