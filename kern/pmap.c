@@ -582,7 +582,7 @@ int buddy_alloc(u_int size, struct Page **new) {
 	}
 	u_int size3 = 1 << cnt;
 	if (size3 != size) {
-		size3 == size3 << 1;
+		size3 = size3 << 1;
 	}
 	// 2. judge
 	if (size3 == (1<<12) ) {
@@ -599,7 +599,7 @@ int buddy_alloc(u_int size, struct Page **new) {
 			struct Page *pp;
 			pp = LIST_FIRST(&buddy_free_list[1]);
 			LIST_REMOVE(pp, pp_link);
-			memset((void *)page2kva(pp), 0, 8192));
+			memset((void *)page2kva(pp), 0, 8192);
 			// 2. 1 to 2
 			struct Page *pp2;
 			pp2 = pp + 12;
@@ -616,7 +616,7 @@ int buddy_alloc(u_int size, struct Page **new) {
 		if (LIST_EMPTY(&buddy_free_list[1])) {
 			return -E_NO_MEM;
 		}
-		pp = LIST_FIRST(&&buddy_free_list[1]);
+		pp = LIST_FIRST(&buddy_free_list[1]);
 		LIST_REMOVE(pp, pp_link);
 		memset((void *)page2kva(pp), 0, size3);
 		*new = pp;
