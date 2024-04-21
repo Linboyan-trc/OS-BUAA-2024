@@ -35,5 +35,25 @@ void schedule(int yield) {
 	 *   'TAILQ_FIRST', 'TAILQ_REMOVE', 'TAILQ_INSERT_TAIL'
 	 */
 	/* Exercise 3.12: Your code here. */
+	// 12.1 当 yield || cnt时间片用完 || 进程控制块为空 || 进程的状态不是RUNNABLE 就要切换进程
+	// 12.2 如果进程不为空，先移出这个进程，设置为RUNNABLE之后再加入调度队列队尾，等待下一次调度
+	// 12.3 然后拿出调度队列的队头，设置cnt为进程优先级，然后env_run(e)运行该进程
+	if (yield || count <= 0 || e == NULL || e->env_status != ENV_RUNNABLE) {
+		if (e != NULL) {
+			TAILQ_REMOVE(&env_sched_list, e, env_sched_link);
+			if (e->env_status == ENV_RUNNABLE) {
+				TAILQ_INSERT_TAIL(&env_sched_list, e, env_sched_link);
+			}
+		}
 
+		if (TAILQ_EMPTY(&env_sched_list)) {
+			panic("schedule: no runnable envs");
+		}
+
+		e = TAILQ_FIRST(&env_sched_list);
+
+		count = e->env_pri;
+	}
+	count--;
+	env_run(e);
 }

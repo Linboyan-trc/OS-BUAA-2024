@@ -17,6 +17,11 @@
 	 *
 	 */
 	/* Exercise 3.11: Your code here. */
+	// 11.1 对CP0_COUNT寄存器清零
+	// 11.2 对CP0_COMPARE寄存器赋值为TIMER_INTERVAL
+	mtc0 zero, CP0_COUNT
+	mtc0 t0, CP0_COMPARE
+
 
 .endm
 // clang-format on

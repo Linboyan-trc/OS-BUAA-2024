@@ -10,6 +10,16 @@ ENTRY(_start)
 
 SECTIONS {
 	/* Exercise 3.10: Your code here. */
+	/* 设置tlb异常处理程序的地址，和其他异常处理程序的地址 */
+	. = 0x80000000;
+	.tlb_miss_entry : {
+		*(.text.tlb_miss_entry)
+	}
+
+	. = 0x80000180;
+	.exc_gen_entry : {
+		*(.text.exc_gen_entry)
+	}
 
 	/* fill in the correct address of the key sections: text, data, bss. */
 	/* Hint: The loading address can be found in the memory layout. And the data section
