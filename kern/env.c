@@ -175,7 +175,7 @@ void env_init(void) {
 	base_pgdir = (Pde *)page2kva(p);
 	printk("base_pgdir's va is %x\n",base_pgdir);
 	printk("PADDR(pages) is %x\n",PADDR(pages));
-	printk("UPAGES is %d\n",UPAGES);
+	printk("UPAGES is %x\n",UPAGES);
 	printk("size is %x\n",ROUND(npage * sizeof(struct Page), PAGE_SIZE));
 	map_segment(base_pgdir, 0, PADDR(pages), UPAGES,
 		    ROUND(npage * sizeof(struct Page), PAGE_SIZE), PTE_G);
