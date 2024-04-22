@@ -171,6 +171,7 @@ void env_init(void) {
 	panic_on(page_alloc(&p));
 	p->pp_ref++;
 
+	printk("p's pa is %x\n",p);
 	base_pgdir = (Pde *)page2kva(p);
 	printk("base_pgdir is %x\n",base_pgdir);
 	map_segment(base_pgdir, 0, PADDR(pages), UPAGES,
