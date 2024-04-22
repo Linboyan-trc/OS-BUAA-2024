@@ -171,9 +171,12 @@ void env_init(void) {
 	panic_on(page_alloc(&p));
 	p->pp_ref++;
 
-	printk("p's pa is %x\n",p);
+	printk("p's 页控制块为 is %x\n",p);
 	base_pgdir = (Pde *)page2kva(p);
-	printk("base_pgdir is %x\n",base_pgdir);
+	printk("base_pgdir's va is %x\n",base_pgdir);
+	printk("PADDR(pages) is %x\n",PADDR(pages));
+	printk("UPAGES is %d\n",UPAGES);
+	printk("size is %x\n",ROUND(npage * sizeof(struct Page), PAGE_SIZE));
 	map_segment(base_pgdir, 0, PADDR(pages), UPAGES,
 		    ROUND(npage * sizeof(struct Page), PAGE_SIZE), PTE_G);
 	map_segment(base_pgdir, 0, PADDR(envs), UENVS, ROUND(NENV * sizeof(struct Env), PAGE_SIZE),
