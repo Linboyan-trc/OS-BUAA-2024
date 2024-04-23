@@ -203,7 +203,6 @@ static int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte) {
 	/* Exercise 2.6: Your code here. (1/3) */
 	// 6.1 找到页目录中，我们需要的项的地址
 	pgdir_entryp = pgdir + PDX(va);
-	printk("pgdir_entryp is %x, va is %x, PDX(va) is %x\n",pgdir_entryp,va,PDX(va));
 
 	/* Step 2: If the corresponding page table is not existent (valid) then:
 	 *   * If parameter `create` is set, create one. Set the permission bits 'PTE_C_CACHEABLE |
