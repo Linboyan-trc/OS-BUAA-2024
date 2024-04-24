@@ -472,6 +472,7 @@ extern void env_pop_tf(struct Trapframe *tf, u_int asid) __attribute__((noreturn
  */
 void env_run(struct Env *e) {
 	assert(e->env_status == ENV_RUNNABLE);
+
 	// WARNING BEGIN: DO NOT MODIFY FOLLOWING LINES!
 #ifdef MOS_PRE_ENV_RUN
 	MOS_PRE_ENV_RUN_STMT
@@ -593,4 +594,28 @@ void envid2env_check() {
 	re = envid2env(pe2->env_id, &pe, 1);
 	assert(re == -E_BAD_ENV);
 	printk("envid2env() work well!\n");
+}
+
+void env_stat(struct Env *e, u_int *pri, u_int *scheds, u_int *runs, u_int *clocks){
+	// 1.
+	*pri = e->env_pri;
+
+	e->sumcnt += ((struct Trapframe *)KSTACKTOP - 1)->cp0_count;
+	if(curenv == NULL){
+		e->exccnt++;
+	}
+	else if (e->env_id != curenv->env_id){
+		e->exccnt++;
+	}
+
+	// 2.
+	*scheds = e->exccnt;
+
+	// 3.
+	*runs = e->env_runs;
+
+	// 4.
+	*clocks = e->sumcnt;
+
+
 }
