@@ -539,7 +539,11 @@ void *syscall_table[MAX_SYSNO] = {
  *   Number of arguments cannot exceed 5.
  */
 void do_syscall(struct Trapframe *tf) {
+	// 1. 定义了一个函数指针
 	int (*func)(u_int, u_int, u_int, u_int, u_int);
+
+	// 2.1 sysno就是system number的意思
+	// 2.2 从$a0(序号4)获取要进行哪种系统调用
 	int sysno = tf->regs[4];
 	if (sysno < 0 || sysno >= MAX_SYSNO) {
 		tf->regs[2] = -E_NO_SYS;
@@ -548,13 +552,16 @@ void do_syscall(struct Trapframe *tf) {
 
 	/* Step 1: Add the EPC in 'tf' by a word (size of an instruction). */
 	/* Exercise 4.2: Your code here. (1/4) */
+	// 3.1 对CP0的EPC+4，返回的时候不再执行异常指令
 	tf->cp0_epc += 4;
 
 	/* Step 2: Use 'sysno' to get 'func' from 'syscall_table'. */
 	/* Exercise 4.2: Your code here. (2/4) */
+	// 4.1 根据sysno，从多种系统调用中获取一种
 	func = syscall_table[sysno];
 
 	/* Step 3: First 3 args are stored in $a1, $a2, $a3. */
+	// 4.2 设置func的参数，分别是$a1,$a2,$a3，还有栈$sp的+16和+20
 	u_int arg1 = tf->regs[5];
 	u_int arg2 = tf->regs[6];
 	u_int arg3 = tf->regs[7];
@@ -568,5 +575,7 @@ void do_syscall(struct Trapframe *tf) {
 	/* Step 5: Invoke 'func' with retrieved arguments and store its return value to $v0 in 'tf'.
 	 */
 	/* Exercise 4.2: Your code here. (4/4) */
+	// 5.1 把系统调用的结果，也就是func函数的返回值存到$v0中
+	// 5.2 在定义函数指针的时候已经声明了返回值为int类型
 	tf->regs[2] = func(arg1, arg2, arg3, arg4, arg5);
 }
