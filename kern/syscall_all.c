@@ -508,22 +508,32 @@ int sys_read_dev(u_int va, u_int pa, u_int len) {
 }
 
 void *syscall_table[MAX_SYSNO] = {
+	// [0] [1]
     [SYS_putchar] = sys_putchar,
     [SYS_print_cons] = sys_print_cons,
+	// [2] [3] [4]
     [SYS_getenvid] = sys_getenvid,
     [SYS_yield] = sys_yield,
     [SYS_env_destroy] = sys_env_destroy,
+	// [5] 
     [SYS_set_tlb_mod_entry] = sys_set_tlb_mod_entry,
+	// [6] [7] [8]
     [SYS_mem_alloc] = sys_mem_alloc,
     [SYS_mem_map] = sys_mem_map,
     [SYS_mem_unmap] = sys_mem_unmap,
+	// [9]
     [SYS_exofork] = sys_exofork,
+	// [10] [11]
     [SYS_set_env_status] = sys_set_env_status,
     [SYS_set_trapframe] = sys_set_trapframe,
+	// [12]
     [SYS_panic] = sys_panic,
+	// [13] [14]
     [SYS_ipc_try_send] = sys_ipc_try_send,
     [SYS_ipc_recv] = sys_ipc_recv,
+	// [15]
     [SYS_cgetc] = sys_cgetc,
+	// [16] [17]
     [SYS_write_dev] = sys_write_dev,
     [SYS_read_dev] = sys_read_dev,
 };
