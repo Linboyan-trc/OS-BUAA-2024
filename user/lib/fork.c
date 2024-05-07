@@ -14,6 +14,8 @@
  *    the faulting page at the same address.
  */
 static void __attribute__((noreturn)) cow_entry(struct Trapframe *tf) {
+	// 1.1 va是触发页面写入异常的地址
+	// 1.2 说明此时子进程要写入父进程的某个页面，所以要进行写时复制
 	u_int va = tf->cp0_badvaddr;
 	u_int perm;
 
@@ -21,6 +23,10 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe *tf) {
 	/* Hint: Use 'vpt' and 'VPN' to find the page table entry. If the 'perm' doesn't have
 	 * 'PTE_COW', launch a 'user_panic'. */
 	/* Exercise 4.13: Your code here. (1/6) */
+	// 2.1 vpt就是UVPT，用户页表基址
+	// 2.2 vpt[VPN(va)]直接获取va对应的页表项内容
+	// 2.3 vpt[VPN(va)] & 0xfff查看页表项的[11:0]权限位
+	// 2.4 查看此页是否允许写时复制，PTE_COW的权限位是[0]; 如果vpt[VPN(va)]的[0]为1，那么就允许写时复制
 	perm = vpt[VPN(va)] & 0xfff;
 	if (!(perm & PTE_COW)) {
 		user_panic("perm doesn't have PTE_COW");
@@ -28,23 +34,29 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe *tf) {
 
 	/* Step 2: Remove 'PTE_COW' from the 'perm', and add 'PTE_D' to it. */
 	/* Exercise 4.13: Your code here. (2/6) */
+	// 3.1 可写入，不可复制
 	perm = (perm & ~PTE_COW) | PTE_D;
 
 	/* Step 3: Allocate a new page at 'UCOW'. */
 	/* Exercise 4.13: Your code here. (3/6) */
+	// 4.1 给进程0的UCOW地址分配一个页面
+	// 4.2 页面权限是perm，也就是可写不可复制
 	syscall_mem_alloc(0, (void *)UCOW, perm);
 
 	/* Step 4: Copy the content of the faulting page at 'va' to 'UCOW'. */
 	/* Hint: 'va' may not be aligned to a page! */
 	/* Exercise 4.13: Your code here. (4/6) */
+	// 5.1 把va那一页的内容复制到UCOW处
 	memcpy((void *)UCOW, (void *)ROUNDDOWN(va, PAGE_SIZE), PAGE_SIZE);
 
 	// Step 5: Map the page at 'UCOW' to 'va' with the new 'perm'.
 	/* Exercise 4.13: Your code here. (5/6) */
+	// 6.1 把进程0的UCOW这一页的内容映射给进程0的va这一页
 	syscall_mem_map(0, (void *)UCOW, 0, (void *)va, perm);
 
 	// Step 6: Unmap the page at 'UCOW'.
 	/* Exercise 4.13: Your code here. (6/6) */
+	// 7.1 然后UCOW释放
 	syscall_mem_unmap(0, (void *)UCOW);
 
 	// Step 7: Return to the faulting routine.
@@ -118,6 +130,7 @@ int fork(void) {
 	u_int i;
 
 	/* Step 1: Set our TLB Mod user exception entry to 'cow_entry' if not done yet. */
+	// 1. 设置父进程的写时复制的处理函数
 	if (env->env_user_tlb_mod_entry != (u_int)cow_entry) {
 		try(syscall_set_tlb_mod_entry(0, cow_entry));
 	}
@@ -125,6 +138,7 @@ int fork(void) {
 	/* Step 2: Create a child env that's not ready to be scheduled. */
 	// Hint: 'env' should always point to the current env itself, so we should fix it to the
 	// correct value.
+	// 2. 如果是0，说明现在在子进程，直接返回
 	child = syscall_exofork();
 	if (child == 0) {
 		env = envs + ENVX(syscall_getenvid());
@@ -134,6 +148,9 @@ int fork(void) {
 	/* Step 3: Map all mapped pages below 'USTACKTOP' into the child's address space. */
 	// Hint: You should use 'duppage'.
 	/* Exercise 4.15: Your code here. (1/2) */
+	// 3.1 进入到这里，当前在父进程
+	// 3.2 并且child = 子进程的id
+	// 3.3 设置子进程 0 ~ USTACKTOP 之间的页面都允许写时复制
 	for (i = 0; i < VPN(USTACKTOP); i++) {
 		if ((vpd[i >> 10] & PTE_V) && (vpt[i] & PTE_V)) {
 			duppage(child, i);
@@ -147,6 +164,8 @@ int fork(void) {
 	 *   Child's TLB Mod user exception entry should handle COW, so set it to 'cow_entry'
 	 */
 	/* Exercise 4.15: Your code here. (2/2) */
+	// 4.1 设置子进程的写时复制函数
+	// 4.2 设置子进程为可以就绪态
 	try(syscall_set_tlb_mod_entry(child, cow_entry));
 	try(syscall_set_env_status(child, ENV_RUNNABLE));
 
