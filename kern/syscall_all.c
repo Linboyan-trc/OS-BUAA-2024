@@ -507,6 +507,96 @@ int sys_read_dev(u_int va, u_int pa, u_int len) {
 	return 0;
 }
 
+
+//1. define Sem
+struct Sem {
+	int valid;
+	int value;
+	int blocks[500];
+	int top;
+	struct Env *creator;
+} sems[11] = {0};
+		
+//int sems[15];
+//int sems_valid[15] = {0};
+
+void sys_sem_open(int sem_id, int n) {
+	// Lab 4-1-Exam: Your code here. (6/9)
+	struct Sem *s = sems + sem_id;
+	if (s->valid == 1) {
+		return;
+	} else {
+		// init: valid, value, top, creator
+		s->valid = 1;
+		s->value = n;
+		s->top = -1;
+		s->creator = curenv;
+	}
+}
+
+int sys_sem_wait(int sem_id) {
+	// Lab 4-1-Exam: Your code here. (7/9)
+	// check valid
+	// if s.value == 0, block
+	// else s.value--, continue
+	struct Sem *s = sems + sem_id;
+	if (s->valid == 0) {
+		return -E_SEM_NOT_OPEN;
+	} else {
+		if (s->value == 0) {
+			s->blocks[++s->top] = curenv->env_id;
+			curenv->env_status = ENV_NOT_RUNNABLE;
+			TAILQ_REMOVE(&env_sched_list, curenv, env_sched_link);
+			((struct Trapframe *)KSTACKTOP - 1)->regs[2] = 0;
+			sys_yield();
+		} else {
+			s->value--;
+		}
+		return 0;
+	}
+}
+		
+int sys_sem_post(int sem_id) {
+	// Lab 4-1-Exam: Your code here. (8/9)
+	struct Sem *s = sems + sem_id;
+	// check valid
+	if (s->valid == 0) {
+		return  -E_SEM_NOT_OPEN;
+	} else {
+		s->value++;
+		if (s->top >= 0) {
+			u_int envid = s->blocks[s->top--];
+			struct Env * e;
+			s->value--;
+			envid2env(envid, &e, 0);
+			e->env_status = ENV_RUNNABLE;
+			TAILQ_INSERT_TAIL(&env_sched_list, e, env_sched_link);
+		}
+		return 0;
+	}
+}
+		
+int sys_sem_kill(int sem_id) {
+	// Lab 4-1-Exam: Your code here. (9/9)
+	// if not valid, return E
+	struct Sem *s = sems + sem_id;
+	if (s->valid == 0) {
+		return -E_SEM_NOT_OPEN;
+	}
+	// if valid, unvalidate
+	else {
+		// unvalidate: valid, value, blocks, top, creator
+		s->valid = 0;
+		s->value = 0;
+		s->top = -1;
+		s->creator = 0;
+		return 0;
+	}
+}
+
+
+
+
 void *syscall_table[MAX_SYSNO] = {
 	// [0] [1]
     [SYS_putchar] = sys_putchar,
@@ -536,6 +626,12 @@ void *syscall_table[MAX_SYSNO] = {
 	// [16] [17]
     [SYS_write_dev] = sys_write_dev,
     [SYS_read_dev] = sys_read_dev,
+
+    [SYS_sem_open] = sys_sem_open,
+    [SYS_sem_wait] = sys_sem_wait,
+    [SYS_sem_post] = sys_sem_post,
+    [SYS_sem_kill] = sys_sem_kill,
+
 };
 
 /* Overview:
