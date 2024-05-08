@@ -274,6 +274,9 @@ int env_alloc(struct Env **new, u_int parent_id) {
 	// 4.3 因为地址空间标识符只有0~255，是有限的，所以要看有没有分配成功
 	e->env_id = mkenvid(e);
 	e->env_parent_id = parent_id;
+
+	TAILQ_INIT(&e->env_msg_list);
+
 	if ((r = asid_alloc(&e->env_asid)) != 0) {
 		return r;
 	}
