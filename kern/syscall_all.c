@@ -492,6 +492,7 @@ int sys_write_dev(u_int va, u_int pa, u_int len) {
 		return -E_INVAL;
 	}
 
+	// 3. 根据len长度写入pa
 	if ((0x180001f0 <= pa && pa + len <= 0x180001f8) ||
 	    (0x180003f8 <= pa && pa + len <= 0x18000418)) {
 		if (len == 1) {
@@ -524,14 +525,26 @@ int sys_write_dev(u_int va, u_int pa, u_int len) {
  */
 int sys_read_dev(u_int va, u_int pa, u_int len) {
 	/* Exercise 5.1: Your code here. (2/2) */
+	// 1. len必须要为1,2或4
+	if (len != 1 && len != 2 && len != 4) {
+		return -E_INVAL;
+	}
+
+	// 2. 检查va合法性
 	if (is_illegal_va_range(va, len)) {
 		return -E_INVAL;
 	}
 
-	if ((0x10000000 <= pa && pa + len <= 0x10000020) ||
-	    (0x13000000 <= pa && pa + len <= 0x13004200) ||
-	    (0x15000000 <= pa && pa + len <= 0x15000200)) {
-		memcpy((void *)va, (void *)(KSEG1 | pa), len);
+	// 3. 根据len长度读入va
+	if ((0x180001f0 <= pa && pa + len <= 0x180001f8) ||
+	    (0x180003f8 <= pa && pa + len <= 0x18000418)) {
+		if (len == 1) {
+			*(uint8_t *)va = ioread8(pa);
+		} else if (len == 2) {
+			*(uint16_t *)va = ioread16(pa);
+		} else if (len == 4) {
+			*(uint32_t *)va = ioread32(pa);
+		}
 		return 0;
 	}
 
