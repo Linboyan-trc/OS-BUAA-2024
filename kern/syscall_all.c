@@ -482,14 +482,25 @@ int sys_cgetc(void) {
  */
 int sys_write_dev(u_int va, u_int pa, u_int len) {
 	/* Exercise 5.1: Your code here. (1/2) */
+	// 1. len必须要为1,2或4
+	if (len != 1 && len != 2 && len != 4) {
+		return -E_INVAL;
+	}
+
+	// 2. 检查va合法性
 	if (is_illegal_va_range(va, len)) {
 		return -E_INVAL;
 	}
 
-	if ((0x10000000 <= pa && pa + len <= 0x10000020) ||
-	    (0x13000000 <= pa && pa + len <= 0x13004200) ||
-	    (0x15000000 <= pa && pa + len <= 0x15000200)) {
-		memcpy((void *)(KSEG1 | pa), (void *)va, len);
+	if ((0x180001f0 <= pa && pa + len <= 0x180001f8) ||
+	    (0x180003f8 <= pa && pa + len <= 0x18000418)) {
+		if (len == 1) {
+			iowrite8(*(uint8_t *)va, pa);
+		} else if (len == 2) {
+			iowrite16(*(uint16_t *)va, pa);
+		} else if (len == 4) {
+			iowrite32(*(uint32_t *)va, pa);
+		}
 		return 0;
 	}
 
