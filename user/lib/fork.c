@@ -86,7 +86,7 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe *tf) {
  *     'sys_mem_map' in kernel.
  */
 static void duppage(u_int envid, u_int vpn) {
-	int r;
+	// int r;
 	u_int addr;
 	u_int perm;
 
