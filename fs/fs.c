@@ -13,7 +13,7 @@ int block_is_free(u_int);
 // Hint: Use 'DISKMAP' and 'BLOCK_SIZE' to calculate the address.
 void *disk_addr(u_int blockno) {
 	/* Exercise 5.6: Your code here. */
-	return DISKMAP + blockno * BLOCK_SIZE;
+	return (void*)(DISKMAP + blockno * BLOCK_SIZE);
 }
 
 // Overview:
@@ -193,7 +193,7 @@ void free_block(u_int blockno) {
 	// You can refer to the function 'block_is_free' above.
 	// Step 1: If 'blockno' is invalid (0 or >= the number of blocks in 'super'), return.
 	/* Exercise 5.4: Your code here. (1/2) */
-	if (blockno == 0 || blockno >= super->s_nblocks) {
+	if (blockno==0 || blockno >= super->s_nblocks) {
 		return;
 	}
 
@@ -515,7 +515,7 @@ int dir_lookup(struct File *dir, char *name, struct File **file) {
 			// If we find the target file, set '*file' to it and set up its 'f_dir'
 			// field.
 			/* Exercise 5.8: Your code here. (3/3) */
-			if (strcmp(name, f->f_name) == 0) {
+			if (strcmp(f->f_name, name) == 0) {
 				*file = f;
 				f->f_dir = dir;
 				return 0;
