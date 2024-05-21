@@ -115,10 +115,8 @@ int fsipc_remove(const char *path) {
 	// Step 1: Check the length of 'path' using 'strlen'.
 	// If the length of path is 0 or larger than 'MAXPATHLEN', return -E_BAD_PATH.
 	/* Exercise 5.12: Your code here. (1/3) */
-	int len = strlen(path);
-	if (len == 0 || len > MAXPATHLEN) {
-		return -E_BAD_PATH;
-	}
+	size_t len = strlen(path);
+	if (len == 0 || len > MAXPATHLEN) return -E_BAD_PATH;
 
 	// Step 2: Use 'fsipcbuf' as a 'struct Fsreq_remove'.
 	struct Fsreq_remove *req = (struct Fsreq_remove *)fsipcbuf;
@@ -129,7 +127,7 @@ int fsipc_remove(const char *path) {
 
 	// Step 4: Send request to the server using 'fsipc'.
 	/* Exercise 5.12: Your code here. (3/3) */
-	fsipc(FSREQ_REMOVE, req, 0, 0);
+	return fsipc(FSREQ_REMOVE, req, 0, 0);
 }
 
 // Overview:
