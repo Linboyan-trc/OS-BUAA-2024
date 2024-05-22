@@ -86,7 +86,7 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe *tf) {
  *     'sys_mem_map' in kernel.
  */
 static void duppage(u_int envid, u_int vpn) {
-	int r;
+
 	u_int addr;
 	u_int perm;
 
@@ -107,10 +107,10 @@ static void duppage(u_int envid, u_int vpn) {
 		flag = 1;
 	}
 
-	syscall_mem_map(0, addr, envid, addr, perm);
+	syscall_mem_map(0, (void *)addr, envid, (void *)addr, perm);
 	
 	if (flag) {
-		syscall_mem_map(0, addr, 0, addr, perm);
+		syscall_mem_map(0, (void *)addr, 0, (void *)addr, perm);
 	}
 }
 
@@ -141,6 +141,7 @@ int fork(void) {
 	// 2. 如果是0，说明现在在子进程，直接返回
 	child = syscall_exofork();
 	if (child == 0) {
+		straced = 0;
 		env = envs + ENVX(syscall_getenvid());
 		return 0;
 	}
