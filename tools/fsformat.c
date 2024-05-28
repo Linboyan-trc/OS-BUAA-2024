@@ -206,6 +206,8 @@ int make_link_block(struct File *dirf, int nblk) {
 //  Use 'make_link_block' to allocate a new block for the directory if there are no existing unused
 //  'File's.
 struct File *create_file(struct File *dirf) {
+	// 1.1 dirf是管理目录的文件控制块
+	// 1.2 计算这个文件控制块占用了多少个磁盘块数量
 	int nblk = dirf->f_size / BLOCK_SIZE;
 
 	// Step 1: Iterate through all existing blocks in the directory.
@@ -215,6 +217,13 @@ struct File *create_file(struct File *dirf) {
 		// directly from 'f_direct'. Otherwise, access the indirect block on 'disk' and get
 		// the 'bno' at the index.
 		/* Exercise 5.5: Your code here. (1/3) */
+		// 2.1 如果i为[0,9]，就还是在直接索引的10个磁盘块
+		// 2.2 如果i为[10,1023]，就要用到一级索引
+		// 2.2 一级索引取出记载的磁盘块编号方式为
+		// 		dirf->f_indirect : 一级索引块的磁盘块号
+		// 		disk[dirf->f_indirect] : 拿到一级索引块
+		// 		disk[dirf->f_indirect].data : 拿到一级索引块上的数据
+		// 		( (uint32_t*)disk[dirf->f_indirect].data )[i] : 拿到一级索引块上第i个索引记载的磁盘块号，因为前10个弃用，所以直接[i]就拿到对应的磁盘块号
 		if (i < NDIRECT) {
 			bno = dirf->f_direct[i];
 		} else {
@@ -222,6 +231,8 @@ struct File *create_file(struct File *dirf) {
 		}
 
 		// Get the directory block using the block number.
+		// 3.1 拿到磁盘块号bno后
+		// 3.2 取出这个磁盘块号对应的文件控制块，struct File *blk = (struct File *)disk[bno].data
 		struct File *blk = (struct File *)(disk[bno].data);
 
 		// Iterate through all 'File's in the directory block.
