@@ -376,7 +376,7 @@ void serve_copy(u_int envid, struct Fsreq_copy *rq){
 	ff = (struct Filefd *)o->o_ff;
 	ff->f_file = *f;
 	ff->f_fileid = o->o_fileid;
-	o->o_mode = rq->req_omode;
+	//o->o_mode = rq->req_omode;
 	ff->f_fd.fd_omode = o->o_mode;
 	ff->f_fd.fd_dev_id = devfile.dev_id;
 	ipc_send(envid, 0, o->o_ff, PTE_D | PTE_LIBRARY);
