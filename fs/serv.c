@@ -335,6 +335,71 @@ void serve_sync(u_int envid) {
 	ipc_send(envid, 0, 0, 0);
 }
 
+
+
+
+
+
+
+
+
+
+void serve_copy(u_int envid, struct Fsreq_copy *rq){
+   // Lab 5-2-Exam: Your code here. (6/6)
+	// Find a file id.
+	int r;
+	struct Open *o;
+	if ((r = open_alloc(&o)) < 0) {
+		ipc_send(envid, r, 0, 0);
+		return;
+	}
+
+	// create rq->path_dst
+	struct File *f;
+	if ((r = file_create(rq->req_dst_path, &f)) < 0 &&
+	    r != -E_FILE_EXISTS) {
+		ipc_send(envid, r, 0, 0);
+		return;
+	}
+
+	// copy the file.
+	if ((r = directory_copy(rq->req_src_path, rq->req_dst_path)) < 0) {
+		ipc_send(envid, r, 0, 0);
+		return;
+	}
+
+	// Save the file pointer.
+	struct Filefd *ff;
+	o->o_file = f;
+
+	// Fill out the Filefd structure
+	ff = (struct Filefd *)o->o_ff;
+	ff->f_file = *f;
+	ff->f_fileid = o->o_fileid;
+	o->o_mode = rq->req_omode;
+	ff->f_fd.fd_omode = o->o_mode;
+	ff->f_fd.fd_dev_id = devfile.dev_id;
+	ipc_send(envid, 0, o->o_ff, PTE_D | PTE_LIBRARY);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*
  * The serve function table
  * File system use this table and the request number to
@@ -343,7 +408,7 @@ void serve_sync(u_int envid) {
 void *serve_table[MAX_FSREQNO] = {
     [FSREQ_OPEN] = serve_open,	 [FSREQ_MAP] = serve_map,     [FSREQ_SET_SIZE] = serve_set_size,
     [FSREQ_CLOSE] = serve_close, [FSREQ_DIRTY] = serve_dirty, [FSREQ_REMOVE] = serve_remove,
-    [FSREQ_SYNC] = serve_sync,
+    [FSREQ_SYNC] = serve_sync,	[FSREQ_COPY] = serve_copy,
 };
 
 /*
