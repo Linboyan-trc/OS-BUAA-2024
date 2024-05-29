@@ -355,12 +355,12 @@ void serve_copy(u_int envid, struct Fsreq_copy *rq){
 	}
 
 	// create rq->path_dst
-	struct File *f;
-	if ((r = file_create(rq->req_dst_path, &f)) < 0 &&
-	    r != -E_FILE_EXISTS) {
-		ipc_send(envid, r, 0, 0);
-		return;
-	}
+	//struct File *f;
+	//if ((r = file_create(rq->req_dst_path, &f)) < 0 &&
+	//    r != -E_FILE_EXISTS) {
+	//	ipc_send(envid, r, 0, 0);
+	//	return;
+	//}
 
 	// copy the file.
 	if ((r = directory_copy(rq->req_src_path, rq->req_dst_path)) < 0) {
@@ -369,17 +369,18 @@ void serve_copy(u_int envid, struct Fsreq_copy *rq){
 	}
 
 	// Save the file pointer.
-	struct Filefd *ff;
-	o->o_file = f;
+	//struct Filefd *ff;
+	//o->o_file = f;
 
 	// Fill out the Filefd structure
-	ff = (struct Filefd *)o->o_ff;
-	ff->f_file = *f;
-	ff->f_fileid = o->o_fileid;
+	//ff = (struct Filefd *)o->o_ff;
+	//ff->f_file = *f;
+	//ff->f_fileid = o->o_fileid;
 	//o->o_mode = rq->req_omode;
-	ff->f_fd.fd_omode = o->o_mode;
-	ff->f_fd.fd_dev_id = devfile.dev_id;
-	ipc_send(envid, 0, o->o_ff, PTE_D | PTE_LIBRARY);
+	//ff->f_fd.fd_omode = o->o_mode;
+	//ff->f_fd.fd_dev_id = devfile.dev_id;
+	//ipc_send(envid, 0, o->o_ff, PTE_D | PTE_LIBRARY);
+	ipc_send(envid, 0, 0, 0);
 }
 
 
