@@ -349,10 +349,7 @@ void serve_copy(u_int envid, struct Fsreq_copy *rq){
 	// Find a file id.
 	int r;
 	struct Open *o;
-	if ((r = open_alloc(&o)) < 0) {
-		ipc_send(envid, r, 0, 0);
-		return;
-	}
+	r = open_alloc(&o);
 
 	// create rq->path_dst
 	//struct File *f;
@@ -363,10 +360,7 @@ void serve_copy(u_int envid, struct Fsreq_copy *rq){
 	//}
 
 	// copy the file.
-	if ((r = directory_copy(rq->req_src_path, rq->req_dst_path)) < 0) {
-		ipc_send(envid, r, 0, 0);
-		return;
-	}
+	r = directory_copy(rq->req_src_path, rq->req_dst_path);
 
 	// Save the file pointer.
 	//struct Filefd *ff;

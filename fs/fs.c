@@ -837,17 +837,11 @@ int copy_file_content(struct File *src, struct File *dst) {
       // 1. block cache pointer
       // 2. strcpy
       // 3. file_dirty
-      if ( (r = file_get_block(src,i,&src_blk)) < 0 ){
-    	return r;
-      }
-      if ( (r = file_get_block(dst,i,&dst_blk)) < 0 ){
-      	return r;
-      }
+      r = file_get_block(src,i,&src_blk);
+      r = file_get_block(dst,i,&dst_blk);
       strcpy((char *)dst_blk, (char *)src_blk);
       
-      if ( (r = file_dirty(dst,i)) < 0 ) {
-      	return r;
-      }
+      r = file_dirty(dst,i);
    }
    // Flush the changes to the destination file
    file_flush(dst);
@@ -869,9 +863,7 @@ int copy_directory_contents(struct File *src, struct File *dst) {
          struct File *dst_file;
          // Step1: Alloc dst_file using 'dir_alloc_file'
          // Lab 5-2-Exam: Your code here. (4/6)
-         if ((r = dir_alloc_file(dir_content, &dst_file)) < 0) {
-         	return r;
-         }
+	r = dir_alloc_file(dst, &dst_file);
 
          // Step2: Assign corresponding values of 'f_name', 'f_dir', 'f_size', 'f_type' to dst_file
          strcpy(dst_file->f_name, dir_content[j].f_name);
@@ -883,18 +875,12 @@ int copy_directory_contents(struct File *src, struct File *dst) {
          // depending on the value of 'f_type'.
          // Lab 5-2-Exam: Your code here. (5/6)
          if (dst_file->f_type == FTYPE_REG) {
-         	if ((r = copy_file_content(dir_content, dst_file)) < 0 ) {
-         		return r;
-         	}
+         	r = copy_file_content(dir_content, dst_file);
          } else {
-         	if ((r = copy_directory_contents(dir_content, dst_file)) < 0 ) {
-         		return r;
-         	}
+         	r = copy_directory_contents(dir_content, dst_file);
          }
          
-         if ((r = file_dirty(dst_file, i)) < 0 ) {
-         	return r;
-         }
+         r = file_dirty(dst_file, i);
       }
    }
    file_flush(dst);
