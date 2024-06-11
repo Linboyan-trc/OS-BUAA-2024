@@ -114,7 +114,7 @@ int parsecmd(char **argv, int *rightpipe) {
 			// and subsequently terminate the process using 'exit'.
 			/* Exercise 6.5: Your code here. (2/3) */
 			//user_panic("> redirection not implemented");
-			if((fd = open(t, O_WRONLY)) < 0) {
+			if((fd = open(t, O_WRONLY | O_CREAT | O_TRUNC)) < 0) {
 				debugf("failed to open %s\n");
 				exit();
 			}
