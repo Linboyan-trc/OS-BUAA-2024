@@ -80,7 +80,7 @@ int gettoken(char *s, char **p1) {
 
 #define MAXARGS 128
 
-int parsecmd(char **argv, int *rightpipe, int *condi_or, int *condi_and) {
+int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv, int *condi_or, int *condi_and) {
 	int argc = 0;
 	while (1) {
 		char *t;
@@ -171,7 +171,7 @@ int parsecmd(char **argv, int *rightpipe, int *condi_or, int *condi_and) {
 				close(p[0]);
 				close(p[1]);
 				// printf("父进程进入下一层parsecmd\n");
-				return parsecmd(argv, rightpipe, condi_or, condi_and);
+				return parsecmd(argv, rightpipe, NULL, NULL, NULL, NULL);
 			// 3. 父进程
 			// 3. 把父进程的fdnum，拷贝给fd[1]
 			} else {
@@ -185,52 +185,31 @@ int parsecmd(char **argv, int *rightpipe, int *condi_or, int *condi_and) {
 			break;
 		///////////////////////////// 3. 对于 || 和 && /////////////////////////////
 		case 1:;
-			int p_or[2];
-			/* Exercise 6.5: Your code here. (3/3) */
-			//user_panic("| not implemented");
-			// 1. 创建管道
-			if((r = pipe(p_or)) < 0) {
-				debugf("failed to create pipe\n");
-				exit();
-			}
-			// 2. 子进程
-			// 2. 把子进程的fdnum,拷贝给fd[0]
-			if((*condi_or = fork()) == 0) {
-				dup(p_or[0], 0);
-				close(p_or[0]);
-				close(p_or[1]);
-				return parsecmd(argv, rightpipe, condi_or, condi_and);
-			// 3. 父进程
-			// 3. 把父进程的fdnum，拷贝给fd[1]
+			// 子进程
+			if(fork() == 0){
+				// printf("现在进入子进程\n");
+				*need_ipc_send = 1;
+				// printf("子进程进入下一层parsecmd\n");
+				return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
 			} else {
-				dup(p_or[1], 1);
-				close(p_or[1]);
-				close(p_or[0]);
+				// printf("现在进入父进程\n");
+				*need_ipc_recv = 1;
+				*condi_or = 1;
+				// printf("父进程返回argc为%d\n",argc);
 				return argc;
 			}
 			break;
 		case 2:;
-			int p_and[2];
-			/* Exercise 6.5: Your code here. (3/3) */
-			//user_panic("| not implemented");
-			// 1. 创建管道
-			if((r = pipe(p_and)) < 0) {
-				debugf("failed to create pipe\n");
-				exit();
-			}
-			// 2. 子进程
-			// 2. 把子进程的fdnum,拷贝给fd[0]
-			if((*condi_and = fork()) == 0) {
-				dup(p_and[0], 0);
-				close(p_and[0]);
-				close(p_and[1]);
-				return parsecmd(argv, rightpipe, condi_or, condi_and);
-			// 3. 父进程
-			// 3. 把父进程的fdnum，拷贝给fd[1]
+			if(fork() == 0){
+				// printf("现在进入子进程\n");
+				*need_ipc_send = 1;
+				// printf("子进程进入下一层parsecmd\n");
+				return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
 			} else {
-				dup(p_and[1], 1);
-				close(p_and[1]);
-				close(p_and[0]);
+				// printf("现在进入父进程\n");
+				*need_ipc_recv = 1;
+				*condi_and = 1;
+				// printf("父进程返回argc为 %d \n",argc);
 				return argc;
 			}
 			break;
@@ -246,9 +225,11 @@ void runcmd(char *s) {
 
 	char *argv[MAXARGS];
 	int rightpipe = 0;
+	int need_ipc_send = 0;
+	int need_ipc_recv = 0;
 	int condi_or = 0;
 	int condi_and = 0;
-	int argc = parsecmd(argv, &rightpipe, &condi_or, &condi_and);
+	int argc = parsecmd(argv, &rightpipe, &need_ipc_send, &need_ipc_recv, &condi_or, &condi_and);
 	if (argc == 0) {
 		return;
 	}
@@ -259,25 +240,37 @@ void runcmd(char *s) {
 	// for(int i = 0;i < argc;i++) {
 	// 	printf("%s\n",argv[i]);
 	// }
-	//////////////////////////////////////////////
+	// printf("进程%x的need_ipc_send=%x, need_ipc_recv=%d, condi_or=%d, condi_and=%d\n",env->env_id, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+	//////////////////////////////////////////////	
 
-	// 1. child是新建进程的id
-	// 2. 对于ls | cat都会创建进程
-	int child = spawn(argv[0], argv);
+	int child = -1;
+	if (need_ipc_recv != 0) {
+		ipc_recv(0,0,0);
+		if (condi_or && env->env_ipc_value != 0) {
+			child = spawn(argv[0], argv);
+		} else if (condi_and && env->env_ipc_value == 0) {
+			child = spawn(argv[0], argv);
+		}
+	} else {
+		child = spawn(argv[0], argv);
+	}
 	// printf("%s的进程id是%x\n",argv[0],child);
 	close_all();
 	if (child >= 0) {
-		wait(child);
+		ipc_recv(0,0,0);
+		//wait(child);
 	} else {
 		debugf("spawn %s: %d\n", argv[0], child);
 	}
-	// 2. 父进程的rightpipe不为0，要等待
-	// 2. ls | cat 中，等待的是cat
-	// 2. ls | cat 为 子进程 | 父进程
-	// 2. 只有父进程会进入这个
+
 	if (rightpipe) {
 		wait(rightpipe);
 	}
+
+	if (need_ipc_send) {
+		ipc_send(env->env_parent_id, env->env_ipc_value, 0,0);
+	}
+
 	exit();
 }
 

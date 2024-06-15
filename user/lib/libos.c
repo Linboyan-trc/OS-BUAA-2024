@@ -20,7 +20,12 @@ void libmain(int argc, char **argv) {
 	env = &envs[ENVX(syscall_getenvid())];
 
 	// call user main routine
-	main(argc, argv);
+	int r = main(argc, argv);
+
+	//////////////////// 1. 进程退出前给父进程发消息 /////////////////////
+	// printf("进程%x给父进程%x发送信息%d\n",env->env_id, env->env_parent_id,r);
+	ipc_send(env->env_parent_id, r, 0,0);
+	//////////////////////////////////////////////////////////////////
 
 	// exit gracefully
 	exit();
