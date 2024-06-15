@@ -166,20 +166,20 @@ int parsecmd(char **argv, int *rightpipe, int *condi_or, int *condi_and) {
 			// 2. 子进程
 			// 2. 把子进程的fdnum,拷贝给fd[0]
 			if((*rightpipe = fork()) == 0) {
-				printf("现在进入父进程\n");
+				// printf("现在进入父进程\n");
 				dup(p[0], 0);
 				close(p[0]);
 				close(p[1]);
-				printf("父进程进入下一层parsecmd\n");
+				// printf("父进程进入下一层parsecmd\n");
 				return parsecmd(argv, rightpipe, condi_or, condi_and);
 			// 3. 父进程
 			// 3. 把父进程的fdnum，拷贝给fd[1]
 			} else {
-				printf("现在进入子进程\n");
+				// printf("现在进入子进程\n");
 				dup(p[1], 1);
 				close(p[1]);
 				close(p[0]);
-				printf("子进程返回argc为%d\n",argc);
+				// printf("子进程返回argc为%d\n",argc);
 				return argc;
 			}
 			break;
@@ -255,16 +255,16 @@ void runcmd(char *s) {
 	argv[argc] = 0;
 
 	///////////////// 查看条件执行 /////////////////
-	printf("一共有%d个指令, 并且rightpipe = %x\n",argc, rightpipe);
-	for(int i = 0;i < argc;i++) {
-		printf("%s\n",argv[i]);
-	}
+	// printf("一共有%d个指令, 并且rightpipe = %x\n",argc, rightpipe);
+	// for(int i = 0;i < argc;i++) {
+	// 	printf("%s\n",argv[i]);
+	// }
 	//////////////////////////////////////////////
 
 	// 1. child是新建进程的id
 	// 2. 对于ls | cat都会创建进程
 	int child = spawn(argv[0], argv);
-	printf("%s的进程id是%x\n",argv[0],child);
+	// printf("%s的进程id是%x\n",argv[0],child);
 	close_all();
 	if (child >= 0) {
 		wait(child);

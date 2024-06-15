@@ -169,6 +169,6 @@ int fork(void) {
 	try(syscall_set_tlb_mod_entry(child, cow_entry));
 	try(syscall_set_env_status(child, ENV_RUNNABLE));
 
-	printf("%x在fork.c被fork出,来自pipe\n",child);
+	// printf("%x在fork.c被fork出,来自pipe\n",child);
 	return child;
 }

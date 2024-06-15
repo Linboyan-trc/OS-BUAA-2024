@@ -12,7 +12,9 @@ int main(int argc, char **argv) {
 		debugf("touch:文件已存在\n");
 		return -1;
 	}
-	if (create(argv[1], FTYPE_REG) < 0)
+
+    fd = open(argv[1], O_RDONLY | O_CREAT);
+	if (fd < 0)
 	{
 		debugf("touch: cannot touch \'%s\': No such file or directory\n",argv[1]);
         return -1;
