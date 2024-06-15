@@ -1,20 +1,53 @@
-# ENDIAN is either EL (little endian) or EB (big endian)
-ENDIAN         := EL
+lab-ge = $(shell [ "$$(echo $(lab)_ | cut -f1 -d_)" -ge $(1) ] && echo true)
 
-QEMU           := qemu-system-mipsel
-CROSS_COMPILE  := mips-linux-gnu-
-CC             := $(CROSS_COMPILE)gcc
-CFLAGS         += --std=gnu99 -$(ENDIAN) -G 0 -mno-abicalls -fno-pic \
-                  -ffreestanding -fno-stack-protector -fno-builtin \
-                  -Wa,-xgot -Wall -mxgot -mno-fix-r4000 -march=4kc
-LD             := $(CROSS_COMPILE)ld
-LDFLAGS        += -$(ENDIAN) -G 0 -static -n -nostdlib --fatal-warnings
+INITAPPS             := tltest.x fktest.x pingpong.x
 
-HOST_CC        := cc
-HOST_CFLAGS    += --std=gnu99 -O2 -Wall
-HOST_ENDIAN    := $(shell lscpu | grep -iq 'little endian' && echo EL || echo EB)
+USERLIB              := entry.o \
+			syscall_wrap.o \
+			debugf.o \
+			libos.o \
+			fork.o \
+			syscall_lib.o \
+			ipc.o
 
-ifneq ($(HOST_ENDIAN), $(ENDIAN))
-# CONFIG_REVERSE_ENDIAN is checked in tools/fsformat.c (lab5)
-HOST_CFLAGS    += -DCONFIG_REVERSE_ENDIAN
+ifeq ($(call lab-ge,5), true)
+	INITAPPS     += devtst.x fstest.x
+	USERLIB      += fd.o \
+			pageref.o \
+			file.o \
+			fsipc.o \
+			console.o \
+			fprintf.o
+
 endif
+
+ifeq ($(call lab-ge,6), true)
+	INITAPPS     += icode.x \
+			testpipe.x \
+			testpiperace.x \
+			testptelibrary.x
+
+	USERLIB      += wait.o spawn.o pipe.o
+	USERAPPS     := num.b  \
+			echo.b \
+			halt.b \
+			ls.b \
+			sh.b  \
+			cat.b \
+			touch.b \
+			mkdir.b \
+			rm.b \
+			sleep.b \
+			true.b \
+			false.b \
+			testpipe.b \
+			testpiperace.b \
+			testptelibrary.b \
+			testarg.b \
+			testbss.b \
+			testfdsharing.b \
+			pingpong.b \
+			init.b
+endif
+
+USERLIB := $(addprefix lib/, $(USERLIB)) $(wildcard ../lib/*.o)
