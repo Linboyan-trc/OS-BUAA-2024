@@ -254,16 +254,6 @@ void runcmd(char *s) {
 	}
 	argv[argc] = 0;
 
-	///////////////// 1. 实现ls不带.b ////////////////////
-	int mylen1 = strlen(argv[0]);
-	char myendchar = argv[0][mylen1-1];
-	if (myendchar != 'b') {
-		argv[0][mylen1] = '.';
-		argv[0][mylen1+1] = 'b';
-		argv[0][mylen1+2] = '\0';
-	}
-	/////////////////////////////////////////////////////
-
 	///////////////// 查看条件执行 /////////////////
 	printf("一共有%d个指令, 并且rightpipe = %x\n",argc, rightpipe);
 	for(int i = 0;i < argc;i++) {

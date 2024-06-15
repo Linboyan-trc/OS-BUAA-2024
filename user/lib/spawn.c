@@ -108,10 +108,23 @@ static int spawn_mapper(void *data, u_long va, size_t offset, u_int perm, const 
  *   CPUs! QEMU doesn't simulate caching, allowing the OS to function correctly.
  */
 int spawn(char *prog, char **argv) {
+
+	//////////////// 1. ls不带.b /////////////////
+	char prog_n[1024];
+	strcpy(prog_n, prog);
+	int mylen1 = strlen(prog_n);
+	char myendchar = prog_n[mylen1-1];
+	if (myendchar != 'b') {
+		prog_n[mylen1] = '.';
+		prog_n[mylen1+1] = 'b';
+		prog_n[mylen1+2] = '\0';
+	}
+	/////////////////////////////////////////////
+
 	// Step 1: Open the file 'prog' (the path of the program).
 	// Return the error if 'open' fails.
 	int fd;
-	if ((fd = open(prog, O_RDONLY)) < 0) {
+	if ((fd = open(prog_n, O_RDONLY)) < 0) {
 		return fd;
 	}
 
