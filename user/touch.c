@@ -13,10 +13,10 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
-    fd = open(argv[1], O_RDONLY | O_CREAT);
+    fd = open(argv[1], O_CREAT);
 	if (fd < 0)
 	{
-		debugf("touch: cannot touch \'%s\': No such file or directory\n",argv[1]);
+		printf("touch: cannot touch \'%s\': No such file or directory\n",argv[1]);
         return -1;
 	}
     return 0;
