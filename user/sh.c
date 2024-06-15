@@ -166,20 +166,20 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 			// 2. 子进程
 			// 2. 把子进程的fdnum,拷贝给fd[0]
 			if((*rightpipe = fork()) == 0) {
-				// printf("现在进入父进程\n");
+				// printf("现在进入子进程\n");
 				dup(p[0], 0);
 				close(p[0]);
 				close(p[1]);
-				// printf("父进程进入下一层parsecmd\n");
+				// printf("进程进入下一层parsecmd\n");
 				return parsecmd(argv, rightpipe, NULL, NULL, NULL, NULL);
 			// 3. 父进程
 			// 3. 把父进程的fdnum，拷贝给fd[1]
 			} else {
-				// printf("现在进入子进程\n");
+				// printf("现在进入父进程\n");
 				dup(p[1], 1);
 				close(p[1]);
 				close(p[0]);
-				// printf("子进程返回argc为%d\n",argc);
+				// printf("父进程返回argc为%d\n",argc);
 				return argc;
 			}
 			break;
@@ -190,13 +190,13 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 				// printf("现在进入子进程\n");
 				*need_ipc_send = 1;
 				// printf("子进程进入下一层parsecmd\n");
-				return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+				return argc;
 			} else {
 				// printf("现在进入父进程\n");
 				*need_ipc_recv = 1;
 				*condi_or = 1;
 				// printf("父进程返回argc为%d\n",argc);
-				return argc;
+				return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
 			}
 			break;
 		case 2:;
@@ -204,13 +204,13 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 				// printf("现在进入子进程\n");
 				*need_ipc_send = 1;
 				// printf("子进程进入下一层parsecmd\n");
-				return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+				return argc;
 			} else {
 				// printf("现在进入父进程\n");
 				*need_ipc_recv = 1;
 				*condi_and = 1;
 				// printf("父进程返回argc为 %d \n",argc);
-				return argc;
+				return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
 			}
 			break;
 		//////////////////////////////////////////////////////////////////////////
@@ -240,7 +240,7 @@ void runcmd(char *s) {
 	// for(int i = 0;i < argc;i++) {
 	// 	printf("%s\n",argv[i]);
 	// }
-	// printf("进程%x的need_ipc_send=%x, need_ipc_recv=%d, condi_or=%d, condi_and=%d\n",env->env_id, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+	// printf("进程%x的rightpipe=%x, need_ipc_send=%x, need_ipc_recv=%d, condi_or=%d, condi_and=%d\n",env->env_id, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
 	//////////////////////////////////////////////	
 
 	int child = -1;
