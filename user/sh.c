@@ -38,6 +38,21 @@ int _gettoken(char *s, char **p1, char **p2) {
 		*p1 = s;
 		*s++ = 0;
 		*p2 = s;
+
+		///////////////// 2. 判断||和&& /////////////////
+		if (t == '|' && (*s) == '|') {
+			t = 1;
+			*p1 = s;
+			*s++ = 0;
+			*p2 = s;
+		} else if (t == '&' && (*s) == '&') {
+			t = 2;
+			*p1 = s;
+			*s++ = 0;
+			*p2 = s;
+		}
+		///////////////////////////////////////////////
+
 		return t;
 	}
 
@@ -143,22 +158,85 @@ int parsecmd(char **argv, int *rightpipe) {
 			int p[2];
 			/* Exercise 6.5: Your code here. (3/3) */
 			//user_panic("| not implemented");
+			// 1. 创建管道
 			if((r = pipe(p)) < 0) {
 				debugf("failed to create pipe\n");
 				exit();
 			}
+			// 2. 子进程
+			// 2. 把子进程的fdnum,拷贝给fd[0]
 			if((*rightpipe = fork()) == 0) {
+				printf("%s是子进程\n",argv[argc - 1]);
 				dup(p[0], 0);
 				close(p[0]);
 				close(p[1]);
 				return parsecmd(argv, rightpipe);
+			// 3. 父进程
+			// 3. 把父进程的fdnum，拷贝给fd[1]
 			} else {
+				printf("%s是父进程\n",argv[argc - 1]);
 				dup(p[1], 1);
 				close(p[1]);
 				close(p[0]);
 				return argc;
 			}
 			break;
+		///////////////////////////// 3. 对于 || 和 && /////////////////////////////
+		case 1:
+			int p[2];
+			/* Exercise 6.5: Your code here. (3/3) */
+			//user_panic("| not implemented");
+			// 1. 创建管道
+			if((r = pipe(p)) < 0) {
+				debugf("failed to create pipe\n");
+				exit();
+			}
+			// 2. 子进程
+			// 2. 把子进程的fdnum,拷贝给fd[0]
+			if((*rightpipe = fork()) == 0) {
+				printf("%s是子进程\n",argv[argc - 1]);
+				dup(p[0], 0);
+				close(p[0]);
+				close(p[1]);
+				return parsecmd(argv, rightpipe);
+			// 3. 父进程
+			// 3. 把父进程的fdnum，拷贝给fd[1]
+			} else {
+				printf("%s是父进程\n",argv[argc - 1]);
+				dup(p[1], 1);
+				close(p[1]);
+				close(p[0]);
+				return argc;
+			}
+			break;
+		case 2:
+			int p[2];
+			/* Exercise 6.5: Your code here. (3/3) */
+			//user_panic("| not implemented");
+			// 1. 创建管道
+			if((r = pipe(p)) < 0) {
+				debugf("failed to create pipe\n");
+				exit();
+			}
+			// 2. 子进程
+			// 2. 把子进程的fdnum,拷贝给fd[0]
+			if((*rightpipe = fork()) == 0) {
+				printf("%s是子进程\n",argv[argc - 1]);
+				dup(p[0], 0);
+				close(p[0]);
+				close(p[1]);
+				return parsecmd(argv, rightpipe);
+			// 3. 父进程
+			// 3. 把父进程的fdnum，拷贝给fd[1]
+			} else {
+				printf("%s是父进程\n",argv[argc - 1]);
+				dup(p[1], 1);
+				close(p[1]);
+				close(p[0]);
+				return argc;
+			}
+			break;
+		//////////////////////////////////////////////////////////////////////////
 		}
 	}
 
@@ -170,11 +248,31 @@ void runcmd(char *s) {
 
 	char *argv[MAXARGS];
 	int rightpipe = 0;
-	int argc = parsecmd(argv, &rightpipe);
+	int condi_and = 0;
+	int condi_or = 0;
+	int argc = parsecmd(argv, &rightpipe, &condi_and, &condi_or);
 	if (argc == 0) {
 		return;
 	}
 	argv[argc] = 0;
+
+	///////////////// 1. 实现ls不带.b ////////////////////
+	int mylen1 = strlen(argv[0]);
+	char myendchar = argv[0][mylen1-1];
+	if (myendchar != 'b') {
+		argv[0][mylen1] = '.';
+		argv[0][mylen1+1] = 'b';
+		argv[0][mylen1+2] = '\0';
+	}
+	/////////////////////////////////////////////////////
+
+	///////////////// 查看条件执行 /////////////////
+	printf("一共有%d个指令\n",argc);
+	for(int i = 0;i < argc;i++) {
+		printf("%s\n",argv[i]);
+	}
+	//////////////////////////////////////////////
+
 
 	int child = spawn(argv[0], argv);
 	close_all();
@@ -183,6 +281,9 @@ void runcmd(char *s) {
 	} else {
 		debugf("spawn %s: %d\n", argv[0], child);
 	}
+	// 2. 父进程的rightpipe不为0，要等待
+	// 2. ls | cat 中，等待的是cat
+	// 2. ls | cat 为 子进程 | 父进程
 	if (rightpipe) {
 		wait(rightpipe);
 	}
