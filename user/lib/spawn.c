@@ -142,6 +142,7 @@ int spawn(char *prog, char **argv) {
 		r = child;
 		goto err;
 	}
+	printf("%x在spawn.c被fork出,来自runcmd\n",child);
 
 	// Step 4: Use 'init_stack(child, argv, &sp)' to initialize the stack of the child.
 	// 'goto err1' if that fails.
