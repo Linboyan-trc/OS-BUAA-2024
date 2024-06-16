@@ -243,3 +243,18 @@ int spawnl(char *prog, char *args, ...) {
 	// are straightforward.
 	return spawn(prog, &args);
 }
+
+///////////////////////////// 实现文档 /////////////////////////////
+/*
+	1. 	对于实现不带.b的指令
+		指令都是通过sh.c中的spawn(prog, argv)来实现的
+		prog就是指向程序的字符串，比如"ls.b", "echo.b"
+		因此如果prog是"ls"或者"echo"的话
+
+		就新建一个字符串
+		然后把prog拷贝给prog_n
+		然后给prog_n加上".b"后缀
+		然后fd = open(prog_n, O_RDONLY)就可以打开这个程序的二进制文件并且加载了
+				
+*/
+///////////////////////////////////////////////////////////////////
