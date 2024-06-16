@@ -1,4 +1,5 @@
 #include <lib.h>
+#include <fd.h>
 
 int main(int argc, char **argv) {
 
@@ -25,12 +26,24 @@ int main(int argc, char **argv) {
 	} else {
 		if (argc != 2) {
 			debugf("rm:缺少文件名\n");
+			return -1;
 		}
 
-		struct Stat stat_buf;
-		if (stat(argv[1], &stat_buf) >= 0) {
-			printf("rm: cannot remove \'%s\': Is a directory\n", argv[1]);
-			return -1;
+		// struct Stat stat_buf;
+		// if (stat(argv[1], &stat_buf) >= 0) {
+		// 	printf("rm: cannot remove \'%s\': Is a directory\n", argv[1]);
+		// 	return -1;
+		// }
+
+		int fd = open(argv[1],O_RDONLY);
+		if (fd >= 0) {
+			struct Fd *fd_;
+			fd_lookup(fd, &fd_);
+			struct Filefd *fdd = (struct Filefd*)fd_;
+			if (fdd->f_file.f_type == FTYPE_DIR) {
+				printf("rm: cannot remove \'%s\': Is a directory\n", argv[1]);
+				return -1;
+			}
 		}
 
 		r = remove(argv[1]);
