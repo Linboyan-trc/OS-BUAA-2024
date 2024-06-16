@@ -19,9 +19,9 @@ void descend_mkdir(char *path) {
 			}
 		}
 		// 2. create father
-		mkdir(newpath);
+		descend_mkdir(newpath);
 		// 3. create self
-		mkdir(path);
+		descend_mkdir(path);
 	}
 }
 
