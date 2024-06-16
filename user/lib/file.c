@@ -260,3 +260,17 @@ int remove(const char *path) {
 int sync(void) {
 	return fsipc_sync();
 }
+
+
+///////////////// mkdir //////////////////
+int mkdir(const char *path) {
+	int r;
+
+	if ((r = open(path, O_MKDIR)) < 0) {
+		return r;
+	}
+	close(r);
+
+	return 0;
+}
+/////////////////////////////////////////
