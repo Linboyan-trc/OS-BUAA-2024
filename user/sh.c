@@ -193,10 +193,27 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 				return argc;
 			} else {
 				// printf("现在进入父进程\n");
-				*need_ipc_recv = 1;
-				*condi_or = 1;
+                ipc_recv(0,0,0);
+                if (env->env_ipc_value != 0){
+                    // 没成，就要spawn子进程
+                    *need_ipc_recv = 1;
+				    *condi_or = 1;
+                    return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+                } else {
+                    while((c = gettoken(0, &t)) != 0){
+						if (c == 1 || c == 2) {
+							break;
+						}
+					}
+                    *need_ipc_recv = 1;
+                    if (c == 1) {
+						*condi_or = 1;
+					} else if (c == 2) {
+						*condi_and = 1;
+					}
+                    return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+                }
 				// printf("父进程返回argc为%d\n",argc);
-				return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
 			}
 			break;
 		case 2:;
@@ -207,10 +224,27 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 				return argc;
 			} else {
 				// printf("现在进入父进程\n");
-				*need_ipc_recv = 1;
-				*condi_and = 1;
+				ipc_recv(0,0,0);
+				if (env->env_ipc_value == 0) {
+					// 成了，就要spawn子进程
+					*need_ipc_recv = 1;
+					*condi_and = 1;
+					return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+				} else {
+					while((c = gettoken(0, &t)) != 0){
+						if (c == 1 || c == 2) {
+							break;
+						}
+					}
+					*need_ipc_recv = 1;
+					if (c == 1) {
+						*condi_or = 1;
+					} else if (c == 2) {
+						*condi_and = 1;
+					}
+					return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+				}
 				// printf("父进程返回argc为 %d \n",argc);
-				return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
 			}
 			break;
 		//////////////////////////////////////////////////////////////////////////
@@ -245,7 +279,6 @@ void runcmd(char *s) {
 
 	int child = -1;
 	if (need_ipc_recv != 0) {
-		ipc_recv(0,0,0);
 		if (condi_or && env->env_ipc_value != 0) {
 			child = spawn(argv[0], argv);
 		} else if (condi_and && env->env_ipc_value == 0) {
