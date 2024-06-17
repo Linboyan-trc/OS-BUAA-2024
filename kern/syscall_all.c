@@ -445,7 +445,6 @@ int sys_ipc_try_send(u_int envid, u_int value, u_int srcva, u_int perm) {
 int sys_cgetc(void) {
 	int ch;
 	while ((ch = scancharc()) == 0) {
-		break;
 	}
 	return ch;
 }
@@ -552,103 +551,6 @@ int sys_read_dev(u_int va, u_int pa, u_int len) {
 	return -E_INVAL;
 }
 
-
-
-///////////////////////// background /////////////////////////
-struct Job {
-	int job_id; 
-	char status [10]; 
-	int env_id; 
-	char cmd [100];
-	int tuoguan;
-} jobs_k[100] = {0};
-int index_job = 0;
-
-void sys_get_jobs(int type, int envid, char *status, char *cmd, int tuoguan) {
-	if (type == 1) {
-		for (int i = 0;i < index_job;i++) {
-			printk("[%d] %-10s 0x%08x %s\n", jobs_k[i].job_id, jobs_k[i].status, jobs_k[i].env_id, jobs_k[i].cmd);
-		}
-	} else if (type == 2) {
-		// printk("在内核态，托管是%x\n",tuoguan);
-		jobs_k[index_job].job_id = index_job + 1;
-		strcpy(jobs_k[index_job].status, status);
-		jobs_k[index_job].env_id = envid;
-		strcpy(jobs_k[index_job].cmd, cmd);
-		jobs_k[index_job].tuoguan = tuoguan;
-		// printk("[%d] %-10s 0x%08x %s %x\n", jobs_k[index_job].job_id, jobs_k[index_job].status, jobs_k[index_job].env_id, jobs_k[index_job].cmd, jobs_k[index_job].tuoguan);
-
-		index_job++;
-	} else {
-		for (int i = 0;i < index_job;i++) {
-			if (jobs_k[i].env_id == envid) {
-				strcpy(jobs_k[i].status, "Done");
-			}
-		}
-	}
-}
-
-int fgenvid = -1;
-int thefgfrom = -1;
-
-int sys_get_job_envid(int job_id, int envid) {
-	for(int i = 0;i < index_job;i++) {
-		if (jobs_k[i].job_id == job_id) {
-			fgenvid = jobs_k[i].env_id;
-			thefgfrom = envid;
-			return jobs_k[i].env_id;
-		}
-	}
-	return -1;
-}
-
-int sys_get_fg_target(int job_envid) {
-	if (fgenvid == job_envid) {
-		return thefgfrom;
-	} else {
-		return -1;
-	}
-}
-
-int sys_get_job_status(int job_id) {
-	// printk("查状态\n");
-	if (jobs_k[job_id-1].status[0] == 'R') {
-		// printk("在Running\n");
-		return 1;
-	} else {
-		// printk("已经Done\n");
-		return 0;
-	}
-}
-
-int kill_envid = -1;
-
-void sys_kill_job(int job_id) {
-	if (job_id > index_job) {
-		printk("fg: job (%d) do not exist\n", job_id);
-	} else {
-		if (jobs_k[job_id-1].status[0] == 'D') {
-			printk("fg: (0x%08x) not running\n", jobs_k[job_id-1].env_id);
-		} else {
-			kill_envid = jobs_k[job_id-1].env_id;
-			// printk("给%x发消息\n",jobs_k[job_id-1].tuoguan);
-			sys_env_destroy(kill_envid);
-			sys_ipc_try_send(jobs_k[job_id-1].tuoguan,100,0,0);
-		}
- 	}
-}
-
-int sys_get_kill_envid() {
-	return kill_envid;
-}
-
-int sys_get_tuoguan(int job_id) {
-	return jobs_k[job_id-1].tuoguan;
-}
-
-
-//////////////////////////////////////////////////////////////
-
 void *syscall_table[MAX_SYSNO] = {
 	// [0] [1]
     [SYS_putchar] = sys_putchar,
@@ -678,14 +580,6 @@ void *syscall_table[MAX_SYSNO] = {
 	// [16] [17]
     [SYS_write_dev] = sys_write_dev,
     [SYS_read_dev] = sys_read_dev,
-
-	[SYS_get_jobs] = sys_get_jobs,
-	[SYS_get_job_envid] =sys_get_job_envid,
-	[SYS_get_fg_target] = sys_get_fg_target,
-	[SYS_get_job_status] = sys_get_job_status,
-	[SYS_kill_job] = sys_kill_job,
-	[SYS_get_kill_envid] = sys_get_kill_envid,
-	[SYS_get_tuoguan] = sys_get_tuoguan,
 };
 
 /* Overview:
