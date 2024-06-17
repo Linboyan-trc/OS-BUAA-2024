@@ -275,6 +275,8 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 }
 
 void runcmd(char *s) {
+	char new[100] = {0};
+	strcpy(new, s);
 	gettoken(s, 0);
 
 	if (strcmp(s,"jobs")==0) {
@@ -332,7 +334,8 @@ void runcmd(char *s) {
 			debugf("spawn %s: %d\n", argv[0], child);
 		}
 	} else {
-		syscall_get_jobs(2, child, "Running", s, NULL);
+		// debugf("%s\n",new);
+		syscall_get_jobs(2, child, "Running", new, NULL);
 	}
 
 	if (rightpipe) {
