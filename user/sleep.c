@@ -12,6 +12,7 @@ int main(int argc, char **argv) {
     for (int t = 0; t < n * ITER; t++) {
         syscall_yield();
     }
+    // debugf("我的进程%x\n",env->env_id);
     syscall_get_jobs(3,env->env_id,NULL,NULL,NULL);
     return 0;
 }

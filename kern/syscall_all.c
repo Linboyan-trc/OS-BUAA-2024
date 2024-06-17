@@ -445,6 +445,7 @@ int sys_ipc_try_send(u_int envid, u_int value, u_int srcva, u_int perm) {
 int sys_cgetc(void) {
 	int ch;
 	while ((ch = scancharc()) == 0) {
+		break;
 	}
 	return ch;
 }
@@ -575,7 +576,11 @@ void sys_get_jobs(int type, int envid, char *status, char *cmd, void *jobs) {
 
 		index_job++;
 	} else {
-		strcpy(jobs_k[0].status, "Done");
+		for (int i = 0;i < index_job;i++) {
+			if (jobs_k[i].env_id == envid) {
+				strcpy(jobs_k[i].status, "Done");
+			}
+		}
 	}
 }
 

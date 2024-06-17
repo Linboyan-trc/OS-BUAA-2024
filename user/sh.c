@@ -157,6 +157,7 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 		case '&':
 			*background = 1;
 			return argc;
+			break;
 		//////////////////////////////////////////////////////////////////////////
 		case '|':;
 			/*
@@ -280,7 +281,7 @@ void runcmd(char *s) {
 		syscall_get_jobs(1,NULL,NULL,NULL,NULL);
 		exit();
 	}
-	debugf("%s没有进入jobs\n",s);
+	// debugf("%s没有进入jobs\n",s);
 
 	char *argv[MAXARGS];
 	int rightpipe = 0;
@@ -301,7 +302,7 @@ void runcmd(char *s) {
 	// 	printf("%s\n",argv[i]);
 	// }
 	// printf("进程%x的rightpipe=%x, need_ipc_send=%x, need_ipc_recv=%d, condi_or=%d, condi_and=%d\n",env->env_id, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
-	printf("进程的background = %d\n",background);
+	// printf("进程的background = %d\n",background);
 	//////////////////////////////////////////////	
 
 	int child = -1;
@@ -312,7 +313,14 @@ void runcmd(char *s) {
 			child = spawn(argv[0], argv);
 		}
 	} else {
-		child = spawn(argv[0], argv);
+		if (background == 0) {
+			child = spawn(argv[0], argv);
+		} else {
+			int len = strlen(argv[argc-1]);
+			argv[argc-1][len] = '&';
+			argv[argc-1][len+1] = '\0';
+			child = spawn(argv[0], argv);
+		}
 	}
 	// printf("%s的进程id是%x\n",argv[0],child);
 	close_all();
