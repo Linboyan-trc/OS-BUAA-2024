@@ -560,19 +560,23 @@ struct Job {
 	char status [10]; 
 	int env_id; 
 	char cmd [100];
+	int tuoguan;
 } jobs_k[100] = {0};
 int index_job = 0;
 
-void sys_get_jobs(int type, int envid, char *status, char *cmd, void *jobs) {
+void sys_get_jobs(int type, int envid, char *status, char *cmd, int tuoguan) {
 	if (type == 1) {
 		for (int i = 0;i < index_job;i++) {
 			printk("[%d] %-10s 0x%08x %s\n", jobs_k[i].job_id, jobs_k[i].status, jobs_k[i].env_id, jobs_k[i].cmd);
 		}
 	} else if (type == 2) {
+		printk("在内核态，托管是%x\n",tuoguan);
 		jobs_k[index_job].job_id = index_job + 1;
 		strcpy(jobs_k[index_job].status, status);
 		jobs_k[index_job].env_id = envid;
 		strcpy(jobs_k[index_job].cmd, cmd);
+		jobs_k[index_job].tuoguan = tuoguan;
+		printk("[%d] %-10s 0x%08x %s %x\n", jobs_k[index_job].job_id, jobs_k[index_job].status, jobs_k[index_job].env_id, jobs_k[index_job].cmd, jobs_k[index_job].tuoguan);
 
 		index_job++;
 	} else {
@@ -627,12 +631,18 @@ void sys_kill_job(int job_id) {
 			printk("fg: (0x%08x) not running\n", jobs_k[job_id-1].env_id);
 		} else {
 			kill_envid = jobs_k[job_id-1].env_id;
+			printk("给%x发消息\n",jobs_k[job_id-1].tuoguan);
+			sys_ipc_try_send(jobs_k[job_id-1].tuoguan,100,0,0);
 		}
  	}
 }
 
 int sys_get_kill_envid() {
 	return kill_envid;
+}
+
+int sys_get_tuoguan(int job_id) {
+	return jobs_k[job_id-1].tuoguan;
 }
 
 
@@ -674,6 +684,7 @@ void *syscall_table[MAX_SYSNO] = {
 	[SYS_get_job_status] = sys_get_job_status,
 	[SYS_kill_job] = sys_kill_job,
 	[SYS_get_kill_envid] = sys_get_kill_envid,
+	[SYS_get_tuoguan] = sys_get_tuoguan,
 };
 
 /* Overview:

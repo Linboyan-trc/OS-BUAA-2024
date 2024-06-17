@@ -75,8 +75,9 @@ int syscall_read_dev(void *va, u_int dev, u_int size) {
 	return msyscall(SYS_read_dev, va, dev, size);
 }
 
-void syscall_get_jobs(int type, int envid, char *status, char *cmd, void *jobs) {
-	msyscall(SYS_get_jobs, type, envid, status, cmd, jobs);
+void syscall_get_jobs(int type, int envid, char *status, char *cmd, int tuoguan) {
+	debugf("在syscall_lib:托管=%x\n",tuoguan);
+	msyscall(SYS_get_jobs, type, envid, status, cmd, tuoguan);
 }
 
 int syscall_get_job_envid(int job_id, int envid) {
@@ -97,4 +98,8 @@ void syscall_kill_job(int job_id) {
 
 int syscall_get_kill_envid() {
 	return msyscall(SYS_get_kill_envid);
+}
+
+int syscall_get_tuoguan(int job_id) {
+	return msyscall(SYS_get_tuoguan,job_id);
 }

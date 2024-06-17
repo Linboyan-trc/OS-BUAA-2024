@@ -288,7 +288,7 @@ void runcmd(char *s) {
 	gettoken(s, 0);
 
 	if (strcmp(s,"jobs")==0) {
-		syscall_get_jobs(1,0,NULL,NULL,NULL);
+		syscall_get_jobs(1,0,NULL,NULL,0);
 		exit();
 	}
 	// debugf("%s没有进入jobs\n",s);
@@ -302,6 +302,8 @@ void runcmd(char *s) {
 		if (job_envid != -1) {
 			int status = syscall_get_job_status(job_id);
 			if (status == 1) {
+				int tuoguanenvid = syscall_get_tuoguan(job_id);
+				ipc_send(tuoguanenvid,99,0,0);
 				ipc_recv(0,0,0);
 			} else {
 				printf("fg: (0x%08x) not running\n", job_envid);
@@ -315,6 +317,7 @@ void runcmd(char *s) {
 
 	if (s[0] == 'k' && s[1] == 'i' && s[2] == 'l' && s[3] == 'l' && s[4] == ' ') {
 		int job_id = atoi(s+5);
+		debugf("工作id = %d\n",job_id);
 		syscall_kill_job(job_id);
 		exit();
 	}
@@ -352,10 +355,37 @@ void runcmd(char *s) {
 		if (background == 0) {
 			child = spawn(argv[0], argv);
 		} else {
-			int len = strlen(argv[argc-1]);
-			argv[argc-1][len] = '&';
-			argv[argc-1][len+1] = '\0';
-			child = spawn(argv[0], argv);
+			// 1. 子进程处理sleep
+			if(fork()==0){
+				debugf("由%x进程托管\n",env->env_id);
+				int len = strlen(argv[argc-1]);
+				argv[argc-1][len] = '&';
+				argv[argc-1][len+1] = '\0';
+				// 1. 创建子进程
+				child = spawn(argv[0], argv);
+				// 2. 写进后台
+				syscall_get_jobs(2, child, "Running", new, env->env_id);
+				// 3. 等待子进程结束：如果提前接收到99的值，就说明要回到前台
+				ipc_recv(0,0,0);
+				debugf("我回来了,value = %d\n",env->env_ipc_value);
+				if (env->env_ipc_value == 99) {
+					int father = env->env_ipc_from;
+					// ipc_recv(0,0,0);
+					wait(child);
+					debugf("等完了\n");
+					syscall_get_jobs(3,child,NULL,NULL,0);
+					ipc_send(father,0,0,0);
+				} else if (env->env_ipc_value == 100){
+					debugf("我回来了2\n");
+					syscall_get_jobs(3,child,NULL,NULL,0);
+					exit();
+				} else {
+					syscall_get_jobs(3,child,NULL,NULL,0);
+				}
+			// 2. 父进程直接走人
+			} else {
+
+			}
 		}
 	}
 	// printf("%s的进程id是%x\n",argv[0],child);
@@ -369,7 +399,7 @@ void runcmd(char *s) {
 		}
 	} else {
 		// debugf("%s\n",new);
-		syscall_get_jobs(2, child, "Running", new, NULL);
+		// syscall_get_jobs(2, child, "Running", new, NULL);
 	}
 
 	if (rightpipe) {

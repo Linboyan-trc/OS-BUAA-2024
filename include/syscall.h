@@ -28,6 +28,7 @@ enum {
 	SYS_get_job_status,
 	SYS_kill_job,
 	SYS_get_kill_envid,
+	SYS_get_tuoguan,
 	MAX_SYSNO,
 };
 
