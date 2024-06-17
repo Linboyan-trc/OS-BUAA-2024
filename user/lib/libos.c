@@ -43,7 +43,10 @@ void libmain(int argc, char **argv) {
 
 	// if (has_background == 0) {
 		// debugf("有ipc\n");
-	ipc_send(env->env_parent_id, r, 0,0);
+	// debugf("sleep内ipc_send什么情况 %x给父进程%x发信息\n",env->env_id,env->env_parent_id);
+	if (syscall_get_kill_envid() != env->env_id) {
+		ipc_send(env->env_parent_id, r, 0,0);
+	}
 	// } else {
 	// 	// debugf("没有ipc\n");
 	// }

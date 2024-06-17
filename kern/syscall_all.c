@@ -621,7 +621,7 @@ int sys_get_job_status(int job_id) {
 	}
 }
 
-int kill_envid;
+int kill_envid = -1;
 
 void sys_kill_job(int job_id) {
 	if (job_id > index_job) {
@@ -632,6 +632,7 @@ void sys_kill_job(int job_id) {
 		} else {
 			kill_envid = jobs_k[job_id-1].env_id;
 			// printk("给%x发消息\n",jobs_k[job_id-1].tuoguan);
+			sys_env_destroy(kill_envid);
 			sys_ipc_try_send(jobs_k[job_id-1].tuoguan,100,0,0);
 		}
  	}

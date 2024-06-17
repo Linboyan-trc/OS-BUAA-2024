@@ -319,6 +319,7 @@ void runcmd(char *s) {
 		int job_id = atoi(s+5);
 		// debugf("工作id = %d\n",job_id);
 		syscall_kill_job(job_id);
+		// debugf("kill完毕\n");
 		exit();
 	}
 
@@ -370,10 +371,12 @@ void runcmd(char *s) {
 				// debugf("我回来了,value = %d\n",env->env_ipc_value);
 				if (env->env_ipc_value == 99) {
 					int father = env->env_ipc_from;
-					// ipc_recv(0,0,0);
-					wait(child);
+					// debugf("%x让我fg,我是%x\n",father,env->env_id);
+					ipc_recv(0,0,0);
+					// wait(child);
 					// debugf("等完了\n");
 					syscall_get_jobs(3,child,NULL,NULL,0);
+					// debugf("子进程内ipc_send什么情况 %x\n", father);
 					ipc_send(father,0,0,0);
 				} else if (env->env_ipc_value == 100){
 					// debugf("我回来了2\n");
