@@ -317,7 +317,7 @@ void runcmd(char *s) {
 
 	if (s[0] == 'k' && s[1] == 'i' && s[2] == 'l' && s[3] == 'l' && s[4] == ' ') {
 		int job_id = atoi(s+5);
-		debugf("工作id = %d\n",job_id);
+		// debugf("工作id = %d\n",job_id);
 		syscall_kill_job(job_id);
 		exit();
 	}
@@ -357,7 +357,7 @@ void runcmd(char *s) {
 		} else {
 			// 1. 子进程处理sleep
 			if(fork()==0){
-				debugf("由%x进程托管\n",env->env_id);
+				// debugf("由%x进程托管\n",env->env_id);
 				int len = strlen(argv[argc-1]);
 				argv[argc-1][len] = '&';
 				argv[argc-1][len+1] = '\0';
@@ -367,16 +367,16 @@ void runcmd(char *s) {
 				syscall_get_jobs(2, child, "Running", new, env->env_id);
 				// 3. 等待子进程结束：如果提前接收到99的值，就说明要回到前台
 				ipc_recv(0,0,0);
-				debugf("我回来了,value = %d\n",env->env_ipc_value);
+				// debugf("我回来了,value = %d\n",env->env_ipc_value);
 				if (env->env_ipc_value == 99) {
 					int father = env->env_ipc_from;
 					// ipc_recv(0,0,0);
 					wait(child);
-					debugf("等完了\n");
+					// debugf("等完了\n");
 					syscall_get_jobs(3,child,NULL,NULL,0);
 					ipc_send(father,0,0,0);
 				} else if (env->env_ipc_value == 100){
-					debugf("我回来了2\n");
+					// debugf("我回来了2\n");
 					syscall_get_jobs(3,child,NULL,NULL,0);
 					exit();
 				} else {

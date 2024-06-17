@@ -76,7 +76,7 @@ int syscall_read_dev(void *va, u_int dev, u_int size) {
 }
 
 void syscall_get_jobs(int type, int envid, char *status, char *cmd, int tuoguan) {
-	debugf("在syscall_lib:托管=%x\n",tuoguan);
+	// debugf("在syscall_lib:托管=%x\n",tuoguan);
 	msyscall(SYS_get_jobs, type, envid, status, cmd, tuoguan);
 }
 
