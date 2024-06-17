@@ -274,6 +274,14 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 	return argc;
 }
 
+int atoi(char *s) {
+    int ret = 0;
+    while (*s) {
+        ret = ret * 10 + (*s++ - '0');
+    }
+    return ret;
+}
+
 void runcmd(char *s) {
 	char new[100] = {0};
 	strcpy(new, s);
@@ -284,6 +292,26 @@ void runcmd(char *s) {
 		exit();
 	}
 	// debugf("%s没有进入jobs\n",s);
+
+	if (s[0] == 'f' && s[1] == 'g' && s[2] == ' ') {
+		// 1. get envid
+		int job_id = atoi(s+3);
+		// 2. has envid
+		int job_envid = syscall_get_job_envid(job_id, env->env_id);
+		// 3. bring to front
+		if (job_envid != -1) {
+			int status = syscall_get_job_status(job_id);
+			if (status == 1) {
+				ipc_recv(0,0,0);
+			} else {
+				printf("fg: (0x%08x) not running\n", job_envid);
+			}
+		} else {
+			printf("fg: job (%d) do not exist\n", job_id);
+		}
+
+		exit();
+	}
 
 	char *argv[MAXARGS];
 	int rightpipe = 0;

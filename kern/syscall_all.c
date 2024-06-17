@@ -584,6 +584,39 @@ void sys_get_jobs(int type, int envid, char *status, char *cmd, void *jobs) {
 	}
 }
 
+int fgenvid = -1;
+int thefgfrom = -1;
+
+int sys_get_job_envid(int job_id, int envid) {
+	for(int i = 0;i < index_job;i++) {
+		if (jobs_k[i].job_id == job_id) {
+			fgenvid = jobs_k[i].env_id;
+			thefgfrom = envid;
+			return jobs_k[i].env_id;
+		}
+	}
+	return -1;
+}
+
+int sys_get_fg_target(int job_envid) {
+	if (fgenvid == job_envid) {
+		return thefgfrom;
+	} else {
+		return -1;
+	}
+}
+
+int sys_get_job_status(int job_id) {
+	// printk("查状态\n");
+	if (jobs_k[job_id-1].status[0] == 'R') {
+		// printk("在Running\n");
+		return 1;
+	} else {
+		// printk("已经Done\n");
+		return 0;
+	}
+}
+
 
 //////////////////////////////////////////////////////////////
 
@@ -618,6 +651,9 @@ void *syscall_table[MAX_SYSNO] = {
     [SYS_read_dev] = sys_read_dev,
 
 	[SYS_get_jobs] = sys_get_jobs,
+	[SYS_get_job_envid] =sys_get_job_envid,
+	[SYS_get_fg_target] = sys_get_fg_target,
+	[SYS_get_job_status] = sys_get_job_status,
 };
 
 /* Overview:
