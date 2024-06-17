@@ -288,7 +288,7 @@ void runcmd(char *s) {
 	gettoken(s, 0);
 
 	if (strcmp(s,"jobs")==0) {
-		syscall_get_jobs(1,NULL,NULL,NULL,NULL);
+		syscall_get_jobs(1,0,NULL,NULL,NULL);
 		exit();
 	}
 	// debugf("%s没有进入jobs\n",s);
