@@ -21,6 +21,10 @@ int main(int argc, char **argv) {
             target = syscall_get_fg_target(env->env_id);
             need_ipc_send = 1;
         }
+        if (syscall_get_kill_envid()==env->env_id) {
+            syscall_get_jobs(3,env->env_id,NULL,NULL,NULL);
+            return 0;
+        }
         syscall_yield();
     }
     // debugf("我的进程%x\n",env->env_id);

@@ -26,6 +26,8 @@ enum {
 	SYS_get_job_envid,
 	SYS_get_fg_target,
 	SYS_get_job_status,
+	SYS_kill_job,
+	SYS_get_kill_envid,
 	MAX_SYSNO,
 };
 

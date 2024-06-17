@@ -617,6 +617,24 @@ int sys_get_job_status(int job_id) {
 	}
 }
 
+int kill_envid;
+
+void sys_kill_job(int job_id) {
+	if (job_id > index_job) {
+		printk("fg: job (%d) do not exist\n", job_id);
+	} else {
+		if (jobs_k[job_id-1].status[0] == 'D') {
+			printk("fg: (0x%08x) not running\n", jobs_k[job_id-1].env_id);
+		} else {
+			kill_envid = jobs_k[job_id-1].env_id;
+		}
+ 	}
+}
+
+int sys_get_kill_envid() {
+	return kill_envid;
+}
+
 
 //////////////////////////////////////////////////////////////
 
@@ -654,6 +672,8 @@ void *syscall_table[MAX_SYSNO] = {
 	[SYS_get_job_envid] =sys_get_job_envid,
 	[SYS_get_fg_target] = sys_get_fg_target,
 	[SYS_get_job_status] = sys_get_job_status,
+	[SYS_kill_job] = sys_kill_job,
+	[SYS_get_kill_envid] = sys_get_kill_envid,
 };
 
 /* Overview:

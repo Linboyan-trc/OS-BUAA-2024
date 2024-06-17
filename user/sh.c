@@ -313,6 +313,12 @@ void runcmd(char *s) {
 		exit();
 	}
 
+	if (s[0] == 'k' && s[1] == 'i' && s[2] == 'l' && s[3] == 'l' && s[4] == ' ') {
+		int job_id = atoi(s+5);
+		syscall_kill_job(job_id);
+		exit();
+	}
+
 	char *argv[MAXARGS];
 	int rightpipe = 0;
 	int need_ipc_send = 0;
