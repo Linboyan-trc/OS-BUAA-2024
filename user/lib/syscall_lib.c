@@ -74,3 +74,6 @@ int syscall_read_dev(void *va, u_int dev, u_int size) {
 	/* Exercise 5.2: Your code here. (2/2) */
 	return msyscall(SYS_read_dev, va, dev, size);
 }
+void syscall_get_jobs(int type, int envid, char *status, char *cmd, void *jobs) {
+	msyscall(SYS_get_jobs, type, envid, status, cmd, jobs);
+}

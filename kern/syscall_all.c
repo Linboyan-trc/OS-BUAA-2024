@@ -551,6 +551,37 @@ int sys_read_dev(u_int va, u_int pa, u_int len) {
 	return -E_INVAL;
 }
 
+
+
+///////////////////////// background /////////////////////////
+struct Job {
+	int job_id; 
+	char status [10]; 
+	int env_id; 
+	char cmd [100];
+} jobs_k[100] = {0};
+int index_job = 0;
+
+void sys_get_jobs(int type, int envid, char *status, char *cmd, void *jobs) {
+	if (type == 1) {
+		for (int i = 0;i < index_job;i++) {
+			printk("[%d] %-10s 0x%08x %s\n", jobs_k[i].job_id, jobs_k[i].status, jobs_k[i].env_id, jobs_k[i].cmd);
+		}
+	} else if (type == 2) {
+		jobs_k[index_job].job_id = index_job + 1;
+		strcpy(jobs_k[index_job].status, status);
+		jobs_k[index_job].env_id = envid;
+		strcpy(jobs_k[index_job].cmd, cmd);
+
+		index_job++;
+	} else {
+		strcpy(jobs_k[0].status, "Done");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////
+
 void *syscall_table[MAX_SYSNO] = {
 	// [0] [1]
     [SYS_putchar] = sys_putchar,
@@ -580,6 +611,8 @@ void *syscall_table[MAX_SYSNO] = {
 	// [16] [17]
     [SYS_write_dev] = sys_write_dev,
     [SYS_read_dev] = sys_read_dev,
+
+	[SYS_get_jobs] = sys_get_jobs,
 };
 
 /* Overview:

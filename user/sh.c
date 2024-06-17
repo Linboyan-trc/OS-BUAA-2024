@@ -19,6 +19,16 @@
  *   The buffer is modified to turn the spaces after words into zero bytes ('\0'), so that the
  *   returned token is a null-terminated string.
  */
+
+struct Job {
+	int job_id; 
+	char status [10]; 
+	int env_id; 
+	char cmd [100];
+} jobs[100] = {0};
+
+
+
 int _gettoken(char *s, char **p1, char **p2) {
 	*p1 = 0;
 	*p2 = 0;
@@ -80,7 +90,7 @@ int gettoken(char *s, char **p1) {
 
 #define MAXARGS 128
 
-int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv, int *condi_or, int *condi_and) {
+int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv, int *condi_or, int *condi_and, int *background) {
 	int argc = 0;
 	while (1) {
 		char *t;
@@ -107,6 +117,10 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 			// and subsequently terminate the process using 'exit'.
 			/* Exercise 6.5: Your code here. (1/3) */
 			//user_panic("< redirection not implemented");
+			// 1. "<" 重定向
+			// 2. 就是获取'<'之后的单词，打开对应的文件fd = open(t, O_RDONLY)
+			// 3. 然后把这个文件复制到标准输入dup(fd, 0)
+			// 4. 关闭文件即可close(fd)
 			if((fd = open(t, O_RDONLY)) < 0) {
 				debugf("failed to open %s\n");
 				exit();
@@ -139,6 +153,11 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 			}
 			close(fd);
 			break;
+		///////////////////////////// 4. background ///////////////////////////////
+		case '&':
+			*background = 1;
+			return argc;
+		//////////////////////////////////////////////////////////////////////////
 		case '|':;
 			/*
 			 * First, allocate a pipe.
@@ -171,7 +190,7 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 				close(p[0]);
 				close(p[1]);
 				// printf("进程进入下一层parsecmd\n");
-				return parsecmd(argv, rightpipe, NULL, NULL, NULL, NULL);
+				return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and, background);
 			// 3. 父进程
 			// 3. 把父进程的fdnum，拷贝给fd[1]
 			} else {
@@ -198,7 +217,7 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
                     // 没成，就要spawn子进程
                     *need_ipc_recv = 1;
 				    *condi_or = 1;
-                    return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+                    return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and, background);
                 } else {
                     while((c = gettoken(0, &t)) != 0){
 						if (c == 1 || c == 2) {
@@ -211,7 +230,7 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 					} else if (c == 2) {
 						*condi_and = 1;
 					}
-                    return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+                    return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and, background);
                 }
 				// printf("父进程返回argc为%d\n",argc);
 			}
@@ -229,7 +248,7 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 					// 成了，就要spawn子进程
 					*need_ipc_recv = 1;
 					*condi_and = 1;
-					return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+					return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and, background);
 				} else {
 					while((c = gettoken(0, &t)) != 0){
 						if (c == 1 || c == 2) {
@@ -242,7 +261,7 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 					} else if (c == 2) {
 						*condi_and = 1;
 					}
-					return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+					return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and, background);
 				}
 				// printf("父进程返回argc为 %d \n",argc);
 			}
@@ -257,13 +276,20 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 void runcmd(char *s) {
 	gettoken(s, 0);
 
+	if (strcmp(s,"jobs")==0) {
+		syscall_get_jobs(1,NULL,NULL,NULL,NULL);
+		exit();
+	}
+	debugf("%s没有进入jobs\n",s);
+
 	char *argv[MAXARGS];
 	int rightpipe = 0;
 	int need_ipc_send = 0;
 	int need_ipc_recv = 0;
 	int condi_or = 0;
 	int condi_and = 0;
-	int argc = parsecmd(argv, &rightpipe, &need_ipc_send, &need_ipc_recv, &condi_or, &condi_and);
+	int background = 0;
+	int argc = parsecmd(argv, &rightpipe, &need_ipc_send, &need_ipc_recv, &condi_or, &condi_and, &background);
 	if (argc == 0) {
 		return;
 	}
@@ -275,6 +301,7 @@ void runcmd(char *s) {
 	// 	printf("%s\n",argv[i]);
 	// }
 	// printf("进程%x的rightpipe=%x, need_ipc_send=%x, need_ipc_recv=%d, condi_or=%d, condi_and=%d\n",env->env_id, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+	printf("进程的background = %d\n",background);
 	//////////////////////////////////////////////	
 
 	int child = -1;
@@ -289,11 +316,15 @@ void runcmd(char *s) {
 	}
 	// printf("%s的进程id是%x\n",argv[0],child);
 	close_all();
-	if (child >= 0) {
-		ipc_recv(0,0,0);
-		//wait(child);
+	if (background == 0) {
+		if (child >= 0) {
+			ipc_recv(0,0,0);
+			//wait(child);
+		} else {
+			debugf("spawn %s: %d\n", argv[0], child);
+		}
 	} else {
-		debugf("spawn %s: %d\n", argv[0], child);
+		syscall_get_jobs(2, child, "Running", s, NULL);
 	}
 
 	if (rightpipe) {
