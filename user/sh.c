@@ -2,7 +2,7 @@
 #include <lib.h>
 
 #define WHITESPACE " \t\r\n"
-#define SYMBOLS "<|>&;()"
+#define SYMBOLS "<|>&;()#"
 
 /* Overview:
  *   Parse the next token from the string at s.
@@ -147,6 +147,8 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 			} else {
 				return argc;
 			}
+		case '#':
+			return argc;
 		case '|':;
 			/*
 			 * First, allocate a pipe.
