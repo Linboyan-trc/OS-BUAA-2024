@@ -286,37 +286,16 @@ int iskill(char *s) {
 	return 1;
 }
 
-int ishistory(char *s) {
-	if (s[0]=='h' && s[1]=='i' && s[2]=='s' && s[3]=='t' && s[4]=='o' && s[5]=='r' && s[6]=='y') {
-		return 0;
-	}
-	return 1;
-}
-
 void runcmd(char *s) {
 	/////////////////// copy s ///////////////////
 	char news[128] = "\0";
 	strcpy(news,s);
-	///////////////// dimiss '`' /////////////////
-	if (strchr(s,'`')) {
-		while(*s != '`') {
-			s++;
-		}
-		s++;
-		int len = strlen(s);
-		s[len-1] = '\0';
-	}
 	//////////////////////////////////////////////	
 	gettoken(s, 0);
 
 	//////////////// bulid in cmd ////////////////
-	if (ishistory(s) == 0) {
-		syscall_print_history();
-		syscall_add_history(news);
-		exit();
-	} else if (strcmp(s,"jobs") == 0) {
+	if (strcmp(s,"jobs")==0) {
 		syscall_print_jobs();
-		syscall_add_history(news);
 		exit();
 	} else if (isfg(s) == 0) {
 		int job_id = atoi(s+3);
@@ -324,12 +303,10 @@ void runcmd(char *s) {
 		if (envid != -1) {
 			wait(envid);
 		}
-		syscall_add_history(news);
 		exit();
 	} else if (iskill(s) == 0) {
 		int job_id = atoi(s+5);
 		syscall_kill_job(job_id);
-		syscall_add_history(news);
 		exit();
 	}
 	//////////////////////////////////////////////	
@@ -394,8 +371,6 @@ void runcmd(char *s) {
 		ipc_send(env->env_parent_id, env->env_ipc_value, 0,0);
 	}
 
-
-	syscall_add_history(news);
 	exit();
 }
 
