@@ -71,6 +71,8 @@ int syscall_read_dev(void *va, u_int dev, u_int len);
 void syscall_add_jobs(int child,char *news);
 void syscall_finish_jobs(int child);
 void syscall_print_jobs();
+int syscall_find_envid(int job_id);
+void syscall_kill_job(int job_id);
 
 // ipc.c
 void ipc_send(u_int whom, u_int val, const void *srcva, u_int perm);

@@ -86,3 +86,11 @@ void syscall_finish_jobs(int child) {
 void syscall_print_jobs() {
 	msyscall(SYS_print_jobs);
 }
+
+int syscall_find_envid(int job_id) {
+	return msyscall(SYS_find_envid, job_id);
+}
+
+void syscall_kill_job(int job_id) {
+	msyscall(SYS_kill_job, job_id);
+}

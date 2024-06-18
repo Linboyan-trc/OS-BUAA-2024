@@ -262,6 +262,28 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 	return argc;
 }
 
+int atoi(char *s) {
+    int ret = 0;
+    while (*s) {
+        ret = ret * 10 + (*s++ - '0');
+    }
+    return ret;
+}
+
+int isfg(char *s) {
+	if (s[0]=='f' && s[1]=='g') {
+		return 0;
+	}
+	return 1;
+}
+
+int iskill(char *s) {
+	if (s[0]=='k' && s[1]=='i' && s[2]=='l' && s[3]=='l') {
+		return 0;
+	}
+	return 1;
+}
+
 void runcmd(char *s) {
 	/////////////////// copy s ///////////////////
 	char news[128] = "\0";
@@ -272,6 +294,17 @@ void runcmd(char *s) {
 	//////////////// bulid in cmd ////////////////
 	if (strcmp(s,"jobs")==0) {
 		syscall_print_jobs();
+		exit();
+	} else if (isfg(s) == 0) {
+		int job_id = atoi(s+3);
+		int envid = syscall_find_envid(job_id);
+		if (envid != -1) {
+			wait(envid);
+		}
+		exit();
+	} else if (iskill(s) == 0) {
+		int job_id = atoi(s+5);
+		syscall_kill_job(job_id);
 		exit();
 	}
 	//////////////////////////////////////////////	

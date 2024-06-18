@@ -582,6 +582,28 @@ void sys_print_jobs() {
 	}
 }
 
+int sys_find_envid(int job_id) {
+	if (job_id > index_job) {
+		printk("fg: job (%d) do not exist\n", job_id);
+		return -1;
+	} else if (strcmp(jobs[job_id-1].status,"Done") == 0){
+		printk("fg: (0x%08x) not running\n", jobs[job_id-1].envid);
+		return -1;
+	} else {
+		return jobs[job_id-1].envid;
+	}
+}
+
+void sys_kill_job(int job_id) {
+	if (job_id > index_job) {
+		printk("fg: job (%d) do not exist\n", job_id);
+	} else if (strcmp(jobs[job_id-1].status,"Done") == 0){
+		printk("fg: (0x%08x) not running\n", jobs[job_id-1].envid);
+	} else {
+		strcpy(jobs[job_id-1].status,"Done");
+		// sys_env_destroy(jobs[job_id-1].envid);
+	}
+}
 
 
 
@@ -617,6 +639,8 @@ void *syscall_table[MAX_SYSNO] = {
 	[SYS_add_jobs] = sys_add_jobs,
 	[SYS_finish_jobs] = sys_finish_jobs,
 	[SYS_print_jobs] = sys_print_jobs,
+	[SYS_find_envid] = sys_find_envid,
+	[SYS_kill_job] = sys_kill_job,
 };
 
 /* Overview:
