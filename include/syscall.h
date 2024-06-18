@@ -22,6 +22,9 @@ enum {
 	SYS_cgetc,
 	SYS_write_dev,
 	SYS_read_dev,
+	SYS_add_jobs,
+	SYS_finish_jobs,
+	SYS_print_jobs,
 	MAX_SYSNO,
 };
 

@@ -74,3 +74,15 @@ int syscall_read_dev(void *va, u_int dev, u_int size) {
 	/* Exercise 5.2: Your code here. (2/2) */
 	return msyscall(SYS_read_dev, va, dev, size);
 }
+
+void syscall_add_jobs(int child,char *news) {
+	msyscall(SYS_add_jobs, child, news);
+}
+
+void syscall_finish_jobs(int child) {
+	msyscall(SYS_finish_jobs, child);
+}
+
+void syscall_print_jobs() {
+	msyscall(SYS_print_jobs);
+}

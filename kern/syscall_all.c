@@ -445,6 +445,7 @@ int sys_ipc_try_send(u_int envid, u_int value, u_int srcva, u_int perm) {
 int sys_cgetc(void) {
 	int ch;
 	while ((ch = scancharc()) == 0) {
+		break;
 	}
 	return ch;
 }
@@ -551,6 +552,39 @@ int sys_read_dev(u_int va, u_int pa, u_int len) {
 	return -E_INVAL;
 }
 
+struct Job {
+	char status[10];
+	int envid;
+	char s[128];
+} jobs[20] = {0};
+int index_job = 0;
+
+
+void sys_add_jobs(int child, char *s) {
+	strcpy(jobs[index_job].status,"Running");
+	jobs[index_job].envid = child;
+	strcpy(jobs[index_job].s,s);
+	index_job++;
+}
+
+void sys_finish_jobs(int child) {
+	for (int i = 0;i < index_job;i++) {
+		if (jobs[i].envid == child) {
+			strcpy(jobs[i].status,"Done");
+			break;
+		}
+	}
+}
+
+void sys_print_jobs() {
+	for (int i = 0;i < index_job;i++) {
+		printk("[%d] %-10s 0x%08x %s\n", i+1, jobs[i].status, jobs[i].envid, jobs[i].s);
+	}
+}
+
+
+
+
 void *syscall_table[MAX_SYSNO] = {
 	// [0] [1]
     [SYS_putchar] = sys_putchar,
@@ -580,6 +614,9 @@ void *syscall_table[MAX_SYSNO] = {
 	// [16] [17]
     [SYS_write_dev] = sys_write_dev,
     [SYS_read_dev] = sys_read_dev,
+	[SYS_add_jobs] = sys_add_jobs,
+	[SYS_finish_jobs] = sys_finish_jobs,
+	[SYS_print_jobs] = sys_print_jobs,
 };
 
 /* Overview:

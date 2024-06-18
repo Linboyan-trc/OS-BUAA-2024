@@ -80,7 +80,7 @@ int gettoken(char *s, char **p1) {
 
 #define MAXARGS 128
 
-int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv, int *condi_or, int *condi_and) {
+int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv, int *condi_or, int *condi_and, int *bg) {
 	int argc = 0;
 	while (1) {
 		char *t;
@@ -139,6 +139,14 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 			}
 			close(fd);
 			break;
+		case '&':
+			*bg = 1;
+			if (fork() == 0) {
+				*bg = 2;
+				return argc;
+			} else {
+				return argc;
+			}
 		case '|':;
 			/*
 			 * First, allocate a pipe.
@@ -171,7 +179,7 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 				close(p[0]);
 				close(p[1]);
 				// printf("进程进入下一层parsecmd\n");
-				return parsecmd(argv, rightpipe, NULL, NULL, NULL, NULL);
+				return parsecmd(argv, rightpipe, NULL, NULL, NULL, NULL, NULL);
 			// 3. 父进程
 			// 3. 把父进程的fdnum，拷贝给fd[1]
 			} else {
@@ -198,7 +206,7 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
                     // 没成，就要spawn子进程
                     *need_ipc_recv = 1;
 				    *condi_or = 1;
-                    return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+                    return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and, bg);
                 } else {
                     while((c = gettoken(0, &t)) != 0){
 						if (c == 1 || c == 2) {
@@ -211,7 +219,7 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 					} else if (c == 2) {
 						*condi_and = 1;
 					}
-                    return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+                    return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and, bg);
                 }
 				// printf("父进程返回argc为%d\n",argc);
 			}
@@ -229,7 +237,7 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 					// 成了，就要spawn子进程
 					*need_ipc_recv = 1;
 					*condi_and = 1;
-					return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+					return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and, bg);
 				} else {
 					while((c = gettoken(0, &t)) != 0){
 						if (c == 1 || c == 2) {
@@ -242,7 +250,7 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 					} else if (c == 2) {
 						*condi_and = 1;
 					}
-					return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and);
+					return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and, bg);
 				}
 				// printf("父进程返回argc为 %d \n",argc);
 			}
@@ -255,7 +263,18 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 }
 
 void runcmd(char *s) {
+	/////////////////// copy s ///////////////////
+	char news[128] = "\0";
+	strcpy(news,s);
+	//////////////////////////////////////////////	
 	gettoken(s, 0);
+
+	//////////////// bulid in cmd ////////////////
+	if (strcmp(s,"jobs")==0) {
+		syscall_print_jobs();
+		exit();
+	}
+	//////////////////////////////////////////////	
 
 	char *argv[MAXARGS];
 	int rightpipe = 0;
@@ -263,11 +282,18 @@ void runcmd(char *s) {
 	int need_ipc_recv = 0;
 	int condi_or = 0;
 	int condi_and = 0;
-	int argc = parsecmd(argv, &rightpipe, &need_ipc_send, &need_ipc_recv, &condi_or, &condi_and);
+	int bg = 0;
+	int argc = parsecmd(argv, &rightpipe, &need_ipc_send, &need_ipc_recv, &condi_or, &condi_and, &bg);
 	if (argc == 0) {
 		return;
 	}
 	argv[argc] = 0;
+
+	///////////////////// bg /////////////////////
+	if (bg == 1) {
+		exit();
+	}
+	//////////////////////////////////////////////	
 
 	///////////////// 查看条件执行 /////////////////
 	// printf("一共有%d个指令, 并且rightpipe = %x\n",argc, rightpipe);
@@ -286,11 +312,17 @@ void runcmd(char *s) {
 		}
 	} else {
 		child = spawn(argv[0], argv);
+		if (bg == 2) {
+			syscall_add_jobs(child,news);
+		}
 	}
 	// printf("%s的进程id是%x\n",argv[0],child);
 	close_all();
 	if (child >= 0) {
 		ipc_recv(0,0,0);
+		if (bg == 2) {
+			syscall_finish_jobs(child);
+		}
 		//wait(child);
 	} else {
 		debugf("spawn %s: %d\n", argv[0], child);
@@ -455,3 +487,17 @@ int main(int argc, char **argv) {
 				
 */
 ///////////////////////////////////////////////////////////////////
+
+//////////////////////////////// 后台实现文档 ///////////////////////////////////
+/*
+    1.  通过parsecmd中增加case &，来修改background值
+        有background值直接不ipc_recv(0,0,0),当前sh.b直接exit()
+    2.  对于后台程序
+        开一个子进程托管
+        先关信息记录在内核中
+    3.  然后fg和kill指令就调用内核指令去找到这个进程
+        fg的话就让当前sh.b等待，直到子进程运行完毕
+        kill的话直接杀死进程，结束sh.b
+*/
+///////////////////////////////////////////////////////////////////////////////
+
