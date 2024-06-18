@@ -94,3 +94,11 @@ int syscall_find_envid(int job_id) {
 void syscall_kill_job(int job_id) {
 	msyscall(SYS_kill_job, job_id);
 }
+
+void syscall_add_history(char *s) {
+	msyscall(SYS_add_history, s);
+}
+
+void syscall_print_history() {
+	msyscall(SYS_print_history);
+}

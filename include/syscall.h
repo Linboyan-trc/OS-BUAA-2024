@@ -27,6 +27,8 @@ enum {
 	SYS_print_jobs,
 	SYS_find_envid,
 	SYS_kill_job,
+	SYS_add_history,
+	SYS_print_history,
 	MAX_SYSNO,
 };
 
