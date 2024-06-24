@@ -605,6 +605,30 @@ void sys_kill_job(int job_id) {
 	}
 }
 
+char history_s[20][128] = {0};
+int index_history = 0;
+
+void sys_add_history(char *s) {
+	strcpy(history_s[index_history % 20],s);
+	index_history++;
+}
+
+void sys_print_history() {
+	if (index_history <= 20) {
+		for(int i = 0;i < index_history;i++) {
+			printk("%s\n",history_s[i]);
+		}
+	} else {
+		int start_pos = index_history % 20;
+		for(int i = start_pos;i < 20;i++) {
+			printk("%d: %s\n",i, history_s[i]);
+		}
+		for(int i = 0;i < start_pos;i++) {
+			printk("%d: %s\n",i, history_s[i]);
+		}
+	}
+}
+
 
 
 void *syscall_table[MAX_SYSNO] = {
@@ -641,6 +665,8 @@ void *syscall_table[MAX_SYSNO] = {
 	[SYS_print_jobs] = sys_print_jobs,
 	[SYS_find_envid] = sys_find_envid,
 	[SYS_kill_job] = sys_kill_job,
+	[SYS_add_history] = sys_add_history,
+	[SYS_print_history] = sys_print_history,
 };
 
 /* Overview:

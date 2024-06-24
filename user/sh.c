@@ -165,7 +165,7 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 				// dup(p_quote[1], 1);
 				// close(p_quote[1]);
 				// close(p_quote[0]);
-				return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and, bg, backquote, p_quote[1]);
+				return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and, bg, backquote, &p_quote[1]);
 			} else {
 				// 2. 父进程读取执行结果，加入到argv
 				close(p_quote[1]);
@@ -337,6 +337,8 @@ void runcmd(char *s) {
 	//////////////// bulid in cmd ////////////////
 	if (strcmp(s,"jobs")==0) {
 		syscall_print_jobs();
+
+		syscall_add_history(news);
 		exit();
 	} else if (isfg(s) == 0) {
 		int job_id = atoi(s+3);
@@ -344,10 +346,14 @@ void runcmd(char *s) {
 		if (envid != -1) {
 			wait(envid);
 		}
+
+		syscall_add_history(news);
 		exit();
 	} else if (iskill(s) == 0) {
 		int job_id = atoi(s+5);
 		syscall_kill_job(job_id);
+
+		syscall_add_history(news);
 		exit();
 	}
 	//////////////////////////////////////////////	
@@ -367,8 +373,25 @@ void runcmd(char *s) {
 	}
 	argv[argc] = 0;
 
+	//////////////// bulid in cmd ////////////////
+	// 1. 执行历史指令
+	// 2. 等待子进程结束再退出
+	if (strcmp(argv[0],"history") == 0) {
+		syscall_add_history(news);
+		syscall_print_history();
+		if (rightpipe) {
+			// wait(rightpipe);
+			exit();
+		} else {
+			exit();
+		}
+	}
+	//////////////////////////////////////////////	
+
 	///////////////////// bg /////////////////////
 	if (bg == 1) {
+
+		syscall_add_history(news);
 		exit();
 	}
 	//////////////////////////////////////////////	
@@ -424,6 +447,9 @@ void runcmd(char *s) {
 		ipc_send(env->env_parent_id, env->env_ipc_value, 0,0);
 	}
 
+	if (backquote == 0) {
+		syscall_add_history(news);
+	}
 	exit();
 }
 
@@ -521,7 +547,7 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-///////////////////////////// 实现文档 /////////////////////////////
+///////////////////////////// 条件指令实现文档 /////////////////////////////
 /*
 	1. 首先要清楚shell的调用流程
 		首先在user/init.c中spwanl("sh.b","sh",NULL),开启了运行sh.b程序的进程
@@ -575,6 +601,21 @@ int main(int argc, char **argv) {
 				
 */
 ///////////////////////////////////////////////////////////////////
+
+//////////////////////////////// 反引号实现文档 ///////////////////////////////////
+/*
+	1. 识别反引号
+	2. 子进程执行反引号内指令
+		传递管道
+		为backquote 而且 rightpipe == 0的时候再复制dup(p_quote[1],1),把写端从stdout改成p)quote[1]
+	3. 父进程读取执行结果
+		父进程从dup(p_quote[0],0)把从stdin读改成从p_quote[0]读
+		读取的时候因为管道只有32字节
+		因此需要使用while(1) { read(p_quote[0], tempbuf + i_buf, 1024 - i_buf); }一段一段的读取，不能使用read()一次性读完
+		读完之后作为argv[argc++] = tempbuf加入到参数中
+		最后还要使父进程的gettoken走到下一个'`'
+*/
+///////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////// 后台实现文档 ///////////////////////////////////
 /*

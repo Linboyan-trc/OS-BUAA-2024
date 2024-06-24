@@ -73,6 +73,8 @@ void syscall_finish_jobs(int child);
 void syscall_print_jobs();
 int syscall_find_envid(int job_id);
 void syscall_kill_job(int job_id);
+void syscall_add_history(char *s);
+void syscall_print_history();
 
 // ipc.c
 void ipc_send(u_int whom, u_int val, const void *srcva, u_int perm);
