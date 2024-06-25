@@ -56,6 +56,20 @@ int _gettoken(char *s, char **p1, char **p2) {
 		return t;
 	}
 
+	if (*s == '\"') {
+		*s++ = 0;
+		*p1 = s;
+		
+		s++;
+		while(*s != '\"') {
+			s++;
+		}
+
+		*s++ = 0;
+		*p2 = s;
+		return 'w';
+	}
+
 	*p1 = s;
 	while (*s && !strchr(WHITESPACE SYMBOLS, *s)) {
 		s++;
