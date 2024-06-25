@@ -149,6 +149,15 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 			}
 		case '#':
 			return argc;
+		case ';':;
+			int temp_r = 0;
+			if ((temp_r = fork()) == 0) {
+				return argc;
+			} else {
+				wait(temp_r);
+				return parsecmd(argv, rightpipe, need_ipc_send, need_ipc_recv, condi_or, condi_and, bg, backquote, backpipe);
+			}
+			break;
 		case '`':;
 			// 2. 结束则返回
 			if (*backquote == 1) {
@@ -614,6 +623,29 @@ int main(int argc, char **argv) {
 		因此需要使用while(1) { read(p_quote[0], tempbuf + i_buf, 1024 - i_buf); }一段一段的读取，不能使用read()一次性读完
 		读完之后作为argv[argc++] = tempbuf加入到参数中
 		最后还要使父进程的gettoken走到下一个'`'
+*/
+///////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////// 历史指令实现文档 ///////////////////////////////////
+/*
+	1. 使用内核实现历史指令，历史指令在内核中
+	2. 首先考虑 history | cat的情况
+		所有history的识别和执行要在parsecmd之后，这样有"|"的时候才会输出到p[1]
+		而不是直接进以来就识别history
+	3. 然后所有的指令退出前要加入到历史指令中
+		在exit()前syscall_history_add()一下
+		对于内建指令，更早exit()，也要更早history_add()
+		对于`ls | cat | cat`这种指令，会在顶层 echo ... 123 的exit()之前history_add()
+		因此只要是bakcquote == 1，那就不需要history_add()
+	4. 对于history指令本身
+		根据需求，需要在打印历史指令之前就history_add()
+*/
+///////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////// 一行多指令实现文档 ///////////////////////////////////
+/*
+	1. ls ; ls
+	2. 第一个ls开一个子进程去执行; 第二个ls父进程执行
 */
 ///////////////////////////////////////////////////////////////////////////////
 
