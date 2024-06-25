@@ -334,10 +334,15 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 			if (fd_temp < 0) {
 				fd_temp = open(t, O_CREAT);
 				fd_temp = open(t, O_APPEND | O_RDWR);
+				// debugf("两次打开文件%s\n",t);
+			} else {
+				// debugf("一次就打开文件%s\n",t);
 			}
 			// 2. 修改输出路径
 			// debugf("现在输出路径是%d\n",fd_temp);
 			dup(fd_temp, 1);
+			close(fd_temp);
+			// debugf("怎么了这是\n");
 			/////// test //////
 			// int temp2 = open("aaa.txt", O_RDWR);
 			// dup(temp2, 1);
@@ -457,7 +462,7 @@ void runcmd(char *s) {
 		}
 	} else {
 		child = spawn(argv[0], argv);
-		// debugf("创建ls子进程:%x\n",child);
+		// debugf("创建echo子进程:%x\n",child);
 		if (bg == 2) {
 			syscall_add_jobs(child,news);
 		}
@@ -474,7 +479,9 @@ void runcmd(char *s) {
 				close(backpipe);
 		}
 		/////////////////////////////////////////////////
+		// debugf("父进程等待中\n");
 		ipc_recv(0,0,0);
+		// debugf("父进程等待完成\n");
 		if (bg == 2) {
 			syscall_finish_jobs(child);
 		}

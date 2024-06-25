@@ -10,12 +10,14 @@ static struct Dev *devtab[] = {&devfile, &devcons,
 			       0};
 
 int dev_lookup(int dev_id, struct Dev **dev) {
+	// debugf("进dev_lookup了\n");
 	for (int i = 0; devtab[i]; i++) {
 		if (devtab[i]->dev_id == dev_id) {
 			*dev = devtab[i];
 			return 0;
 		}
 	}
+	// debugf("出dev_lookup的循环了\n");
 	*dev = NULL;
 	debugf("[%08x] unknown device type %d\n", env->env_id, dev_id);
 	return -E_INVAL;
@@ -92,6 +94,7 @@ int num2fd(int fd) {
 }
 
 int close(int fdnum) {
+	// debugf("关闭文件%d - 1\n",fdnum);
 	int r;
 	struct Dev *dev = NULL;
 	struct Fd *fd;
@@ -101,6 +104,7 @@ int close(int fdnum) {
 	}
 
 	r = (*dev->dev_close)(fd);
+	// debugf("关闭文件%d - 2\n",fdnum);
 	fd_close(fd);
 	return r;
 }
@@ -109,6 +113,7 @@ void close_all(void) {
 	int i;
 
 	for (i = 0; i < MAXFD; i++) {
+		// debugf("关闭文件%d\n",i);
 		close(i);
 	}
 }

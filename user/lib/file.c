@@ -58,10 +58,10 @@ int open(const char *path, int mode) {
 	/* Exercise 5.9: Your code here. (5/5) */
 
 	/////////////////////// for append /////////////////////////
-	if (mode == O_APPEND) {
-		// debugf("正在open内设置偏移量%d\n", size);
-		fd->fd_offset = size;
-	}
+	// if (mode == O_APPEND) {
+	// 	// debugf("正在open内设置偏移量%d\n", size);
+	// 	fd->fd_offset = size;
+	// }
 	////////////////////////////////////////////////////////////
 
 	return fd2num(fd);
@@ -187,10 +187,10 @@ static int file_write(struct Fd *fd, const void *buf, u_int n, u_int offset) {
 	}
 
 	// Write the data
-	if (fd->fd_omode == O_APPEND) {
-		// debugf("正在file_write内设置偏移量%d\n", f->f_file.f_size);
-		offset += f->f_file.f_size;
-	}
+	// if (fd->fd_omode == O_APPEND) {
+	// 	// debugf("正在file_write内设置偏移量%d\n", f->f_file.f_size);
+	// 	offset += f->f_file.f_size;
+	// }
 
 	memcpy((char *)fd2data(fd) + offset, buf, n);
 	return n;
