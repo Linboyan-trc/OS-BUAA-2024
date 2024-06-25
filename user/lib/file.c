@@ -59,7 +59,7 @@ int open(const char *path, int mode) {
 
 	/////////////////////// for append /////////////////////////
 	if (mode == O_APPEND) {
-		debugf("正在open内设置偏移量%d\n", size);
+		// debugf("正在open内设置偏移量%d\n", size);
 		fd->fd_offset = size;
 	}
 	////////////////////////////////////////////////////////////
@@ -188,7 +188,7 @@ static int file_write(struct Fd *fd, const void *buf, u_int n, u_int offset) {
 
 	// Write the data
 	if (fd->fd_omode == O_APPEND) {
-		debugf("正在file_write内设置偏移量%d\n", f->f_file.f_size);
+		// debugf("正在file_write内设置偏移量%d\n", f->f_file.f_size);
 		offset += f->f_file.f_size;
 	}
 

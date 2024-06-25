@@ -336,7 +336,7 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 				fd_temp = open(t, O_APPEND | O_RDWR);
 			}
 			// 2. 修改输出路径
-			debugf("现在输出路径是%d\n",fd_temp);
+			// debugf("现在输出路径是%d\n",fd_temp);
 			dup(fd_temp, 1);
 			/////// test //////
 			// int temp2 = open("aaa.txt", O_RDWR);
