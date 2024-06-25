@@ -195,6 +195,10 @@ void serve_open(u_int envid, struct Fsreq_open *rq) {
 	o->o_mode = rq->req_omode;
 	ff->f_fd.fd_omode = o->o_mode;
 	ff->f_fd.fd_dev_id = devfile.dev_id;
+	if (rq->req_omode & O_APPEND) {
+		debugf("已经进入serve_open的O_APPEND\n");
+		ff->f_fd.fd_offset = f->f_size;
+	}
 	ipc_send(envid, 0, o->o_ff, PTE_D | PTE_LIBRARY);
 }
 

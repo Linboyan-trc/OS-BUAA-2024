@@ -50,6 +50,11 @@ int _gettoken(char *s, char **p1, char **p2) {
 			*p1 = s;
 			*s++ = 0;
 			*p2 = s;
+		} else if (t == '>' && (*s) == '>') {
+			t = 3;
+			*p1 = s;
+			*s++ = 0;
+			*p2 = s;
 		}
 		///////////////////////////////////////////////
 
@@ -322,6 +327,22 @@ int parsecmd(char **argv, int *rightpipe, int *need_ipc_send, int *need_ipc_recv
 			}
 			break;
 		//////////////////////////////////////////////////////////////////////////
+		case 3:;
+			// 1. 获取文件
+			c = gettoken(0, &t);
+			int fd_temp = open(t, O_APPEND | O_RDWR);
+			if (fd_temp < 0) {
+				fd_temp = open(t, O_CREAT);
+				fd_temp = open(t, O_APPEND | O_RDWR);
+			}
+			// 2. 修改输出路径
+			debugf("现在输出路径是%d\n",fd_temp);
+			dup(fd_temp, 1);
+			/////// test //////
+			// int temp2 = open("aaa.txt", O_RDWR);
+			// dup(temp2, 1);
+			///////////////////
+			break;
 		}
 	}
 

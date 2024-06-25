@@ -145,4 +145,6 @@ int mkdir(const char *path);
 #define O_EXCL 0x0400  /* error if already exists */
 #define O_MKDIR 0x0800 /* create directory, not regular file */
 
+#define O_APPEND 0x0004 /* append to file */
+
 #endif
